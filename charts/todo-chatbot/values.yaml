@@ -1,0 +1,117 @@
+frontend:
+  # Image configuration
+  image:
+    repository: "todo-frontend"
+    tag: "latest"
+    pullPolicy: "Never"  # For local Minikube deployment
+
+  # Replicas configuration
+  replicas: 2
+
+  # Resource limits (per spec requirements)
+  resources:
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+
+  # Service configuration
+  service:
+    type: "NodePort"
+    port: 3000
+    targetPort: 3000
+
+  # Environment variables
+  env:
+    NEXT_PUBLIC_API_URL: "http://backend-service:8000"
+    PORT: "3000"
+
+  # Health checks
+  probes:
+    readiness:
+      httpGet:
+        path: "/"
+        port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      httpGet:
+        path: "/"
+        port: 3000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+backend:
+  # Image configuration
+  image:
+    repository: "todo-backend"
+    tag: "latest"
+    pullPolicy: "Never"  # For local Minikube deployment
+
+  # Replicas configuration
+  replicas: 2
+
+  # Resource limits (per spec requirements)
+  resources:
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+
+  # Service configuration
+  service:
+    type: "ClusterIP"
+    port: 8000
+    targetPort: 8000
+
+  # Environment variables
+  env:
+    DATABASE_URL: "postgresql://user:pass@host.docker.internal:5432/phase4_db"
+    JWT_SECRET_KEY: "your-secret-key-minimum-32-characters-long"
+    PORT: "8000"
+    API_HOST: "0.0.0.0"
+    ENV: "production"
+    DEBUG: "false"
+
+  # Health checks
+  probes:
+    readiness:
+      httpGet:
+        path: "/health"
+        port: 8000
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      httpGet:
+        path: "/health"
+        port: 8000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+global:
+  # Common labels to apply to all resources
+  labels: {}
+
+  # Common annotations to apply to all resources
+  annotations: {}
+
+  # Image pull secrets (if needed)
+  imagePullSecrets: []
+
+# Common annotations for all resources
+commonAnnotations: {}
+
+# Common labels for all resources
+commonLabels: {}

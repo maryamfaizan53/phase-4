@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-chatbot.backend.fullname" . }}
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      {{- include "todo-chatbot.backend.selectorLabels" . | nindent 6 }}
+      app: backend
+  template:
+    metadata:
+      labels:
+        {{- include "todo-chatbot.backend.selectorLabels" . | nindent 8 }}
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              value: {{ .Values.backend.env.DATABASE_URL | quote }}
+            - name: JWT_SECRET_KEY
+              value: {{ .Values.backend.env.JWT_SECRET_KEY | quote }}
+            - name: PORT
+              value: {{ .Values.backend.env.PORT | quote }}
+            - name: API_HOST
+              value: {{ .Values.backend.env.API_HOST | quote }}
+            - name: ENV
+              value: {{ .Values.backend.env.ENV | quote }}
+            - name: DEBUG
+              value: {{ .Values.backend.env.DEBUG | quote }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- if .Values.backend.probes }}
+          readinessProbe:
+            {{- toYaml .Values.backend.probes.readiness | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.backend.probes.liveness | nindent 12 }}
+          {{- end }}
