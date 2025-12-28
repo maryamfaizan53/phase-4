@@ -24,6 +24,10 @@ FROM python:3.11-slim AS production
 
 WORKDIR /app
 
+# Install wget for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash appuser && \
     chown -R appuser:appuser /app
@@ -42,7 +46,7 @@ EXPOSE 8000
 
 # Add health check
 HEALTHCHECK --timeout=30s --interval=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
 
 # Start the application with uvicorn
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

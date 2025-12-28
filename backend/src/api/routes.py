@@ -27,6 +27,7 @@ class ChatRequest(BaseModel):
     """Chat request from user"""
 
     message: str
+    language: str = 'en'  # Optional language preference for response
 
 
 class ChatResponse(BaseModel):

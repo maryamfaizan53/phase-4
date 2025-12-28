@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat package.json)"
+      "Bash(cat package.json)",
+      "Bash(uvicorn:*)",
+      "Bash(curl:*)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill /F /PID 11320)",
+      "Bash(taskkill:*)",
+      "Bash(cmd.exe //c \"taskkill //F //PID 11320 && taskkill //F //PID 22052\")",
+      "Bash(powershell.exe -Command \"Stop-Process -Id 11320 -Force; Stop-Process -Id 22052 -Force\")",
+      "Bash(python:*)",
+      "Bash(grep:*)"
     ]
   }
 }

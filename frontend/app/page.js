@@ -44,21 +44,21 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <Link
-              href="/login"
+              href="/dashboard"
               className="group relative px-8 py-4 bg-brand-500 hover:bg-brand-400 text-white rounded-2xl transition-all duration-300 shadow-lg hover:shadow-brand-500/50 hover:-translate-y-1 font-semibold text-lg overflow-hidden"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Get Started
+                Go to Dashboard
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </span>
             </Link>
             <Link
-              href="/tour"
+              href="/login"
               className="px-8 py-4 glass-panel hover:bg-white/10 text-white rounded-2xl transition-all duration-300 hover:-translate-y-1 font-semibold text-lg backdrop-blur-md"
             >
-              Take a Tour
+              Sign In
             </Link>
           </div>
         </div>

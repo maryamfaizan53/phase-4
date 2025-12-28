@@ -1,6 +1,7 @@
 """FastAPI application for Todo AI Chatbot"""
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -22,6 +23,31 @@ app = FastAPI(
 # app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
+# Custom CORS Middleware (replaces problematic CORSMiddleware)
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    """Custom CORS middleware to handle all CORS requirements."""
+
+    async def dispatch(self, request, call_next):
+        # Handle preflight OPTIONS requests
+        if request.method == "OPTIONS":
+            response = Response(content="", status_code=200)
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Max-Age"] = "600"
+            return response
+
+        # Process the request
+        response = await call_next(request)
+
+        # Add CORS headers to all responses
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+
+        return response
+
+
 # Security Headers Middleware (T090)
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Middleware to inject security headers into all responses."""
@@ -36,19 +62,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# CORS Configuration (T086)
-# TODO: Configure allowed origins via environment variable for production
-# In production, restrict to frontend domain only (e.g., https://yourdomain.com)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Development frontend URL
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-)
-
-# Add security headers middleware
+# Add middlewares (execution order: Custom CORS -> Security Headers -> routes)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CustomCORSMiddleware)
 
 
 @app.get("/")
@@ -82,6 +98,17 @@ async def health_check():
         "status": "ok",
         "environment": settings.ENV,
         "service": "todo-ai-chatbot",
+    }
+
+
+@app.get("/debug/middlewares")
+async def debug_middlewares():
+    """Debug endpoint to check loaded middlewares"""
+    return {
+        "middlewares": [
+            {"type": type(m).__name__, "cls": m.cls.__name__ if hasattr(m, 'cls') else "N/A"}
+            for m in app.user_middleware
+        ]
     }
 
 

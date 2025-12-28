@@ -10,8 +10,8 @@ WORKDIR /app
 # Copy package files first for better layer caching
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -28,11 +28,10 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Copy necessary files from builder stage
+# Copy package files and install production dependencies only
 COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+RUN npm ci --only=production
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
 
 # Switch to non-root user
@@ -41,9 +40,9 @@ USER nextjs
 # Expose port 3000
 EXPOSE 3000
 
-# Add health check
+# Add health check (using wget which is available in alpine)
 HEALTHCHECK --timeout=30s --interval=10s --retries=3 \
-    CMD curl -f http://localhost:3000/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
 # Start the application
 CMD ["npm", "start"]

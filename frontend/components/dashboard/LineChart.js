@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { getTimeSeriesData } from '../../lib/analytics';
+import { useTranslations } from '../providers/IntlProvider';
 import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
 
 /**
@@ -18,6 +19,8 @@ import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
  * Displays task creation and completion trends over the last 7 days
  */
 export default function LineChart({ tasks = [] }) {
+  const t = useTranslations('dashboard.charts');
+
   // Get time series data for last 7 days
   const data = getTimeSeriesData(tasks, 7);
 
@@ -29,7 +32,7 @@ export default function LineChart({ tasks = [] }) {
     return (
       <div className="glass-panel rounded-xl p-6 border border-white/20">
         <h3 className="text-lg font-semibold text-white mb-4">
-          Activity Trend (Last 7 Days)
+          {t('activityTrend')}
         </h3>
         <div className="h-[300px] flex items-center justify-center text-white/60">
           <div className="text-center">
@@ -47,7 +50,7 @@ export default function LineChart({ tasks = [] }) {
                 d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
               />
             </svg>
-            <p>No activity data available</p>
+            <p>{t('noData')}</p>
           </div>
         </div>
       </div>
@@ -57,7 +60,7 @@ export default function LineChart({ tasks = [] }) {
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/20">
       <h3 className="text-lg font-semibold text-white mb-4">
-        Activity Trend (Last 7 Days)
+        {t('activityTrend')}
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <RechartsLineChart
@@ -93,7 +96,7 @@ export default function LineChart({ tasks = [] }) {
             strokeWidth={2}
             dot={{ fill: CHART_COLORS.primary, strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6 }}
-            name="Created"
+            name={t('created')}
           />
           <Line
             type="monotone"
@@ -102,7 +105,7 @@ export default function LineChart({ tasks = [] }) {
             strokeWidth={2}
             dot={{ fill: CHART_COLORS.completed, strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6 }}
-            name="Completed"
+            name={t('completed')}
           />
         </RechartsLineChart>
       </ResponsiveContainer>

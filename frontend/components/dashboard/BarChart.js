@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { getStatusBreakdown } from '../../lib/analytics';
+import { useTranslations } from '../providers/IntlProvider';
 import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
 
 /**
@@ -17,6 +18,8 @@ import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
  * Displays task counts by status
  */
 export default function BarChart({ tasks = [] }) {
+  const t = useTranslations('dashboard.charts');
+
   // Get status breakdown data
   const data = getStatusBreakdown(tasks);
 
@@ -27,7 +30,7 @@ export default function BarChart({ tasks = [] }) {
   if (!data || data.length === 0) {
     return (
       <div className="glass-panel rounded-xl p-6 border border-white/20">
-        <h3 className="text-lg font-semibold text-white mb-4">Tasks by Status</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">{t('taskBreakdown')}</h3>
         <div className="h-[300px] flex items-center justify-center text-white/60">
           <div className="text-center">
             <svg
@@ -44,7 +47,7 @@ export default function BarChart({ tasks = [] }) {
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            <p>No status data available</p>
+            <p>{t('noData')}</p>
           </div>
         </div>
       </div>
@@ -59,7 +62,7 @@ export default function BarChart({ tasks = [] }) {
 
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/20">
-      <h3 className="text-lg font-semibold text-white mb-4">Tasks by Status</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">{t('taskBreakdown')}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <RechartsBarChart
           data={formattedData}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useTranslations } from '../providers/IntlProvider';
 import TaskTableRow from './TaskTableRow';
 
 /**
@@ -8,6 +9,9 @@ import TaskTableRow from './TaskTableRow';
  * Displays tasks in a filterable, searchable, paginated table
  */
 export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEdit }) {
+  const t = useTranslations('dashboard.taskTable');
+  const tCommon = useTranslations('common');
+
   // Filter and pagination state
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +79,7 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
     <div className="glass-panel rounded-xl p-6 border border-white/20">
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Recent Tasks</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">{t('title')}</h3>
 
         {/* Filters Section */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -86,9 +90,9 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                placeholder="Search tasks..."
+                placeholder={t('searchPlaceholder')}
                 className="w-full px-4 py-2 pl-10 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
-                aria-label="Search tasks"
+                aria-label={t('searchPlaceholder')}
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -113,19 +117,19 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
               value={statusFilter}
               onChange={handleStatusChange}
               className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent cursor-pointer"
-              aria-label="Filter tasks by status"
+              aria-label={t('filterLabel')}
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
+              <option value="all">{t('filterAll')}</option>
+              <option value="pending">{t('filterPending')}</option>
+              <option value="completed">{t('filterCompleted')}</option>
             </select>
           </div>
         </div>
 
         {/* Results Count */}
         <div className="mt-3 text-sm text-white/60" role="status" aria-live="polite">
-          Showing {paginatedTasks.length} of {filteredTasks.length} tasks
-          {filteredTasks.length !== tasks.length && ` (filtered from ${tasks.length} total)`}
+          {t('showing')} {paginatedTasks.length} {t('of')} {filteredTasks.length} {t('tasks')}
+          {filteredTasks.length !== tasks.length && ` (${t('filteredFrom')} ${tasks.length} ${t('total')})`}
         </div>
       </div>
 
@@ -146,11 +150,11 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          <h4 className="text-lg font-semibold text-white mb-2">No Tasks Found</h4>
+          <h4 className="text-lg font-semibold text-white mb-2">{t('noTasksFound')}</h4>
           <p className="text-white/60">
             {searchQuery || statusFilter !== 'all'
-              ? 'Try adjusting your filters or search query'
-              : 'Create your first task to get started!'}
+              ? t('emptyFiltered')
+              : t('emptyState')}
           </p>
         </div>
       ) : (
@@ -161,19 +165,19 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
               <thead>
                 <tr className="border-b border-white/20">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider w-16">
-                    Done
+                    {tCommon('done')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
-                    Task
+                    {t('taskColumn')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider w-32">
-                    Status
+                    {t('statusColumn')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider w-32">
-                    Created
+                    {t('createdColumn')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider w-24">
-                    Actions
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -195,7 +199,7 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
           {totalPages > 1 && (
             <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
               <div className="text-sm text-white/60">
-                Page {currentPage} of {totalPages}
+                {t('page')} {currentPage} {t('of')} {totalPages}
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -203,14 +207,14 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
                   disabled={currentPage === 1}
                   className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                 >
-                  Previous
+                  {t('previous')}
                 </button>
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
                   className="px-4 py-2 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 rounded-lg border border-brand-500/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                 >
-                  Next
+                  {t('next')}
                 </button>
               </div>
             </div>

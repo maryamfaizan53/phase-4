@@ -3,13 +3,20 @@
  */
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { logout } from '../lib/auth';
 
 export default function Navbar({ user }) {
+  const router = useRouter();
+
   if (!user) return null;
 
   const handleLogout = () => {
     logout();
+  };
+
+  const navigateToDashboard = () => {
+    router.push('/dashboard');
   };
 
   return (
@@ -24,7 +31,31 @@ export default function Navbar({ user }) {
             </div>
             <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-200 tracking-tight">Todo App</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Dashboard Navigation Button */}
+            <button
+              onClick={navigateToDashboard}
+              className="px-3 sm:px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-all duration-300 font-semibold flex items-center space-x-2 text-sm"
+              aria-label="Dashboard"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-brand-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+              <span className="hidden sm:inline">Dashboard</span>
+            </button>
+
+            {/* User Info */}
             <div className="hidden md:flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

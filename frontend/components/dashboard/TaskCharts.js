@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from '../providers/IntlProvider';
 import { ChartSkeleton } from './SkeletonLoader';
 
 // Lazy load chart components for better performance
@@ -24,6 +25,8 @@ const BarChart = dynamic(() => import('./BarChart'), {
  * Displays all chart components in a responsive grid layout
  */
 export default function TaskCharts({ tasks = [] }) {
+  const t = useTranslations('dashboard.charts');
+
   // Empty state
   if (!tasks || tasks.length === 0) {
     return (
@@ -42,9 +45,9 @@ export default function TaskCharts({ tasks = [] }) {
             d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
         </svg>
-        <h3 className="text-lg font-semibold text-white mb-2">No Chart Data</h3>
+        <h3 className="text-lg font-semibold text-white mb-2">{t('noData')}</h3>
         <p className="text-white/60">
-          Create some tasks to see visual insights and analytics
+          {t('noDataDescription')}
         </p>
       </div>
     );

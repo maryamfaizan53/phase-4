@@ -114,7 +114,7 @@ export default function TaskTableRow({ task, onToggleComplete, onDelete, onEdit 
 
         {/* Actions Column */}
         <td className="px-4 py-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
             {/* Edit Button */}
             <button
               onClick={handleEditClick}
@@ -180,7 +180,7 @@ export default function TaskTableRow({ task, onToggleComplete, onDelete, onEdit 
                     Are you sure you want to delete "{task.title}"? This action cannot be undone.
                   </p>
                 </div>
-                <div className="flex items-center space-x-2 ml-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse ml-4 rtl:ml-0 rtl:mr-4">
                   <button
                     onClick={handleDeleteCancel}
                     disabled={isProcessing}

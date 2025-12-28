@@ -190,12 +190,13 @@ export const chatAPI = {
    * Send message to chat endpoint
    * @param {string} userId - User ID
    * @param {string} message - User message
+   * @param {string} language - User's preferred language (optional, defaults to 'en')
    * @returns {Promise<Object>} { response, conversation_id }
    */
-  sendMessage: async (userId, message) => {
+  sendMessage: async (userId, message, language = 'en') => {
     return apiRequest(`/api/${userId}/chat`, {
       method: 'POST',
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, language }),
     });
   },
 };

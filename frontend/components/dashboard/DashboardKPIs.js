@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { calculateKPIs } from '../../lib/analytics';
+import { useTranslations } from '../providers/IntlProvider';
 import KPICard from './KPICard';
 
 /**
@@ -9,6 +10,8 @@ import KPICard from './KPICard';
  * Displays 4 KPI cards in a responsive grid with calculated metrics
  */
 export default function DashboardKPIs({ tasks = [] }) {
+  const t = useTranslations('dashboard.kpis');
+
   // Memoize KPI calculations to avoid recomputing on every render
   const kpis = useMemo(() => calculateKPIs(tasks), [tasks]);
 
@@ -94,25 +97,25 @@ export default function DashboardKPIs({ tasks = [] }) {
       {/* Total Tasks */}
       <div className="animate-slide-up" style={{ animationDelay: '0ms' }}>
         <KPICard
-          title="Total Tasks"
+          title={t('total')}
           value={kpis.totalTasks}
           icon={<TasksIcon />}
           color="brand"
-          trend={kpis.totalTasks > 0 ? `${completionRate}% complete` : 'No tasks yet'}
+          trend={kpis.totalTasks > 0 ? `${completionRate}% ${t('complete')}` : t('noTasksYet')}
         />
       </div>
 
       {/* Completed Tasks */}
       <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
         <KPICard
-          title="Completed"
+          title={t('completed')}
           value={kpis.completedTasks}
           icon={<CheckIcon />}
           color="green"
           trend={
             kpis.completedTasks > 0
-              ? `${kpis.completedTasks} of ${kpis.totalTasks} tasks`
-              : 'No completed tasks'
+              ? `${kpis.completedTasks} ${t('of')} ${kpis.totalTasks} ${t('tasksCount')}`
+              : t('noCompleted')
           }
         />
       </div>
@@ -120,14 +123,14 @@ export default function DashboardKPIs({ tasks = [] }) {
       {/* Pending Tasks */}
       <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
         <KPICard
-          title="Pending"
+          title={t('pending')}
           value={kpis.pendingTasks}
           icon={<ClockIcon />}
           color="yellow"
           trend={
             kpis.pendingTasks > 0
-              ? `${kpis.pendingTasks} tasks in progress`
-              : 'All tasks complete!'
+              ? `${kpis.pendingTasks} ${t('tasksInProgress')}`
+              : t('allComplete')
           }
         />
       </div>
@@ -135,14 +138,14 @@ export default function DashboardKPIs({ tasks = [] }) {
       {/* Overdue Tasks */}
       <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
         <KPICard
-          title="Overdue"
+          title={t('overdue')}
           value={kpis.overdueTasks}
           icon={<AlertIcon />}
           color="red"
           trend={
             kpis.overdueTasks > 0
-              ? 'Needs attention'
-              : 'No overdue tasks'
+              ? t('needsAttention')
+              : t('noOverdue')
           }
         />
       </div>

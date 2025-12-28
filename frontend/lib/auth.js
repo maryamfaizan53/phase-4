@@ -128,7 +128,7 @@ export async function login(email, password) {
     exp: Math.floor(Date.now() / 1000) + 86400 // 24 hours
   };
 
-  const secret = "CzkwMM4kba6uzC8l7Z9HtfRZNHFS9T26"; // Must match backend BETTER_AUTH_SECRET
+  const secret = "e15c4146e3b3c6828c8aaf9338835fdd08a73160e284b105050fb2f3e4b0f5b4"; // Must match backend JWT_SECRET_KEY
   const mockToken = await createJWT(payload, secret);
 
   setAuth(mockUser, mockToken);

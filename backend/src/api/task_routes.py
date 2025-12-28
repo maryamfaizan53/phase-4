@@ -95,15 +95,15 @@ async def list_user_tasks(
         sort_order=sort_order
     )
 
-    result = list_tasks(input_data, db)
+    result = list_tasks(db, input_data)
 
-    if not result.success:
+    if not result.get("success", False):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.error or "Failed to list tasks"
+            detail=result.get("error") or "Failed to list tasks"
         )
 
-    return result.tasks
+    return result.get("tasks", [])
 
 
 @router.post("/{user_id}/tasks", status_code=status.HTTP_201_CREATED)
@@ -144,15 +144,15 @@ async def create_task(
         description=task_data.description
     )
 
-    result = add_task(input_data, db)
+    result = add_task(db, input_data)
 
-    if not result.success:
+    if not result.get("success", False):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.error or "Failed to create task"
+            detail=result.get("error") or "Failed to create task"
         )
 
-    return result.task
+    return result.get("task")
 
 
 @router.put("/{user_id}/tasks/{task_id}")
@@ -197,20 +197,21 @@ async def update_task_endpoint(
         description=task_data.description
     )
 
-    result = update_task(input_data, db)
+    result = update_task(db, input_data)
 
-    if not result.success:
-        if "not found" in (result.error or "").lower():
+    if not result.get("success", False):
+        error_msg = result.get("error", "")
+        if "not found" in error_msg.lower():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=result.error or "Task not found"
+                detail=error_msg or "Task not found"
             )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.error or "Failed to update task"
+            detail=error_msg or "Failed to update task"
         )
 
-    return result.task
+    return result.get("task")
 
 
 @router.patch("/{user_id}/tasks/{task_id}/complete")
@@ -254,20 +255,21 @@ async def toggle_task_completion(
         completed=toggle_data.completed
     )
 
-    result = complete_task(input_data, db)
+    result = complete_task(db, input_data)
 
-    if not result.success:
-        if "not found" in (result.error or "").lower():
+    if not result.get("success", False):
+        error_msg = result.get("error", "")
+        if "not found" in error_msg.lower():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=result.error or "Task not found"
+                detail=error_msg or "Task not found"
             )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.error or "Failed to toggle task completion"
+            detail=error_msg or "Failed to toggle task completion"
         )
 
-    return result.task
+    return result.get("task")
 
 
 @router.delete("/{user_id}/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -308,17 +310,18 @@ async def delete_task_endpoint(
         task_id=task_id
     )
 
-    result = delete_task(input_data, db)
+    result = delete_task(db, input_data)
 
-    if not result.success:
-        if "not found" in (result.error or "").lower():
+    if not result.get("success", False):
+        error_msg = result.get("error", "")
+        if "not found" in error_msg.lower():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=result.error or "Task not found"
+                detail=error_msg or "Task not found"
             )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.error or "Failed to delete task"
+            detail=error_msg or "Failed to delete task"
         )
 
     return None

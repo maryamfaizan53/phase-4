@@ -2,12 +2,14 @@
 from typing import Generator
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlmodel import Session, create_engine
+from sqlmodel import Session, create_engine, select
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from datetime import datetime
 import jwt
 
 from src.config import settings
+from src.models.user import User
 
 # Database engine
 engine = create_engine(
@@ -18,7 +20,8 @@ engine = create_engine(
 )
 
 # HTTP Bearer for JWT token extraction
-security = HTTPBearer()
+# auto_error=False allows OPTIONS requests without Authorization header
+security = HTTPBearer(auto_error=False)
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -33,23 +36,39 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
 ) -> str:
     """
     JWT authentication dependency.
 
     Extracts and validates JWT token from Authorization header,
-    returns user_id from "sub" claim.
+    returns user_id from "sub" claim. Auto-creates user in database
+    if they don't exist (for demo/mock authentication support).
+
+    Note: OPTIONS requests (CORS preflight) don't include credentials,
+    so we check for None and raise 401. However, CORSMiddleware should
+    intercept OPTIONS requests before they reach this dependency.
 
     Args:
-        credentials: HTTP Bearer credentials from request header
+        request: FastAPI request object
+        credentials: HTTP Bearer credentials from request header (None for OPTIONS)
+        db: Database session
 
     Returns:
         str: user_id extracted from JWT token
 
     Raises:
-        HTTPException: 401 if token is invalid, expired, or missing user_id
+        HTTPException: 401 if token is invalid, expired, or missing
     """
+    # Check if credentials are missing (OPTIONS or unauthenticated request)
+    if credentials is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing authentication credentials",
+        )
+
     try:
         # Decode JWT token
         payload = jwt.decode(
@@ -65,6 +84,26 @@ def get_current_user(
                 status_code=401,
                 detail="Invalid token: missing user_id",
             )
+
+        # Check if user exists in database, create if not (for demo/mock auth)
+        existing_user = db.exec(
+            select(User).where(User.user_id == user_id)
+        ).first()
+
+        if not existing_user:
+            # Auto-create user for demo/mock authentication
+            email = payload.get("email", f"{user_id}@demo.local")
+            new_user = User(
+                user_id=user_id,
+                email=email,
+                password_hash="",  # Empty for demo users (JWT-only auth)
+                full_name=payload.get("name"),
+                is_active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+            )
+            db.add(new_user)
+            db.commit()
 
         return user_id
 

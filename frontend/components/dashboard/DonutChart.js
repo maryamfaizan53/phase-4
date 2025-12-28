@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { getStatusDistribution } from '../../lib/analytics';
+import { useTranslations } from '../providers/IntlProvider';
 import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
 
 /**
@@ -10,6 +11,9 @@ import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
  * Displays task status distribution as a donut chart
  */
 export default function DonutChart({ tasks = [] }) {
+  const t = useTranslations('dashboard.charts');
+  const tCommon = useTranslations('common');
+
   // Memoize status distribution data to avoid recalculation
   const data = useMemo(() => getStatusDistribution(tasks), [tasks]);
 
@@ -27,7 +31,7 @@ export default function DonutChart({ tasks = [] }) {
   if (!data || data.length === 0) {
     return (
       <div className="glass-panel rounded-xl p-6 border border-white/20">
-        <h3 className="text-lg font-semibold text-white mb-4">Status Distribution</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">{t('statusDistribution')}</h3>
         <div className="h-[300px] flex items-center justify-center text-white/60">
           <div className="text-center">
             <svg
@@ -50,7 +54,7 @@ export default function DonutChart({ tasks = [] }) {
                 d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
               />
             </svg>
-            <p>No data to display</p>
+            <p>{t('noData')}</p>
           </div>
         </div>
       </div>
@@ -59,7 +63,7 @@ export default function DonutChart({ tasks = [] }) {
 
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/20">
-      <h3 className="text-lg font-semibold text-white mb-4">Status Distribution</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">{t('statusDistribution')}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart role="img" aria-label="Task status distribution donut chart">
           <Pie

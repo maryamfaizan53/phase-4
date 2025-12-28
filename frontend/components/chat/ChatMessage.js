@@ -13,14 +13,14 @@ export default function ChatMessage({ role, content }) {
   return (
     <div
       className={`flex w-full mb-4 animate-slide-up ${
-        isUser ? 'justify-end' : 'justify-start'
+        isUser ? 'justify-end rtl:justify-start' : 'justify-start rtl:justify-end'
       }`}
     >
       <div
         className={`max-w-[80%] rounded-xl px-4 py-3 ${
           isUser
-            ? 'bg-brand-500 text-white rounded-br-none'
-            : 'glass-panel border border-white/20 text-white rounded-bl-none'
+            ? 'bg-brand-500 text-white rounded-br-none rtl:rounded-br-xl rtl:rounded-bl-none'
+            : 'glass-panel border border-white/20 text-white rounded-bl-none rtl:rounded-bl-xl rtl:rounded-br-none'
         }`}
       >
         {/* Message content */}
