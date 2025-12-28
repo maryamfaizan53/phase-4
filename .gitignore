@@ -46,3 +46,4 @@ env/
 .pytest_cache/
 .mypy_cache/
 .coverage
+nul
