@@ -6,5 +6,6 @@ from .user import User
 from .task import Task
 from .conversation import Conversation
 from .message import Message
+from .refresh_token import RefreshToken
 
-__all__ = ["SQLModel", "User", "Task", "Conversation", "Message"]
+__all__ = ["SQLModel", "User", "Task", "Conversation", "Message", "RefreshToken"]

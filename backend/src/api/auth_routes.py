@@ -1,24 +1,38 @@
 """Authentication routes for user registration and login"""
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlmodel import Session, select
 from typing import Optional
 from datetime import datetime
 import uuid
 import jwt
+import re
 
 from src.api.dependencies import get_db, get_current_user
 from src.api.auth_utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from src.models.user import User
+from src.models.refresh_token import RefreshToken
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
-
 
 class RegisterRequest(BaseModel):
     """User registration request"""
     email: EmailStr
-    password: str = Field(min_length=8, max_length=100)
-    full_name: Optional[str] = Field(default=None, max_length=255)
+    password: str = Field(..., min_length=8, max_length=100)
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
+
+    @field_validator('password')
+    @classmethod
+    def password_complexity(cls, v: str) -> str:
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one number')
+        if not re.search(r'[@$!%*?&]', v):
+            raise ValueError('Password must contain at least one special character (@$!%*?&)')
+        return v
 
 
 class LoginRequest(BaseModel):
@@ -94,11 +108,20 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
     # Generate tokens
     access_token = create_access_token(user.user_id)
-    refresh_token = create_refresh_token(user.user_id)
+    refresh_token_str, refresh_expires_at = create_refresh_token(user.user_id)
+
+    # Save refresh token to DB
+    db_refresh_token = RefreshToken(
+        user_id=user.user_id,
+        token=refresh_token_str,
+        expires_at=refresh_expires_at
+    )
+    db.add(db_refresh_token)
+    db.commit()
 
     return TokenResponse(
         access_token=access_token,
-        refresh_token=refresh_token,
+        refresh_token=refresh_token_str,
         user_id=user.user_id,
         email=user.email,
         full_name=user.full_name
@@ -147,11 +170,20 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     # Generate tokens
     access_token = create_access_token(user.user_id)
-    refresh_token = create_refresh_token(user.user_id)
+    refresh_token_str, refresh_expires_at = create_refresh_token(user.user_id)
+
+    # Save refresh token to DB
+    db_refresh_token = RefreshToken(
+        user_id=user.user_id,
+        token=refresh_token_str,
+        expires_at=refresh_expires_at
+    )
+    db.add(db_refresh_token)
+    db.commit()
 
     return TokenResponse(
         access_token=access_token,
-        refresh_token=refresh_token,
+        refresh_token=refresh_token_str,
         user_id=user.user_id,
         email=user.email,
         full_name=user.full_name
@@ -174,7 +206,7 @@ async def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_
         HTTPException: 401 if refresh token is invalid
     """
     try:
-        # Decode refresh token
+        # Decode and basic JWT validation
         payload = decode_token(request.refresh_token)
 
         # Verify token type
@@ -184,37 +216,70 @@ async def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_
                 detail="Invalid token type"
             )
 
-        user_id = payload.get("sub")
-        if not user_id:
+        # Verify rotation: Check if token exists in DB and is not revoked
+        db_token = db.exec(
+            select(RefreshToken).where(RefreshToken.token == request.refresh_token)
+        ).first()
+
+        if not db_token or db_token.revoked:
+            # If a token is reused after being revoked, it's a security risk
+            # Revoke ALL tokens for this user for safety
+            if db_token:
+                other_tokens = db.exec(
+                    select(RefreshToken).where(RefreshToken.user_id == db_token.user_id)
+                ).all()
+                for t in other_tokens:
+                    t.revoked = True
+                db.add_all(other_tokens)
+                db.commit()
+            
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
+                detail="Invalid or revoked refresh token"
             )
 
+        if db_token.expires_at < datetime.utcnow():
+            db_token.revoked = True
+            db.add(db_token)
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token expired"
+            )
+
+        user_id = db_token.user_id
+        
         # Get user from database
         user = db.exec(
             select(User).where(User.user_id == user_id)
         ).first()
 
-        if not user:
+        if not user or not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found"
+                detail="User not found or inactive"
             )
 
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Account is inactive"
-            )
+        # TOKEN ROTATION: Revoke current token
+        db_token.revoked = True
+        db.add(db_token)
 
         # Generate new tokens
         access_token = create_access_token(user.user_id)
-        new_refresh_token = create_refresh_token(user.user_id)
+        new_refresh_token_str, new_refresh_expires_at = create_refresh_token(user.user_id)
+
+        # Save new refresh token
+        new_db_token = RefreshToken(
+            user_id=user.user_id,
+            token=new_refresh_token_str,
+            expires_at=new_refresh_expires_at
+        )
+        db.add(new_db_token)
+        db.commit()
 
         return TokenResponse(
             access_token=access_token,
-            refresh_token=new_refresh_token,
+            refresh_token=new_refresh_token_str,
             user_id=user.user_id,
             email=user.email,
             full_name=user.full_name
@@ -261,3 +326,21 @@ async def get_current_user_info(current_user: str = Depends(get_current_user), d
         "is_active": user.is_active,
         "created_at": user.created_at.isoformat()
     }
+
+
+@router.post("/logout")
+async def logout(current_user: str = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Log out the current user by revoking all their refresh tokens.
+    """
+    tokens = db.exec(
+        select(RefreshToken).where(RefreshToken.user_id == current_user)
+    ).all()
+    
+    for t in tokens:
+        t.revoked = True
+        
+    db.add_all(tokens)
+    db.commit()
+    
+    return {"message": "Successfully logged out"}

@@ -102,57 +102,130 @@ async function createJWT(payload, secret) {
   return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 /**
- * Login function (simplified - in production use Better Auth)
+ * Login function
  * @param {string} email
  * @param {string} password
  * @returns {Promise<Object>} User object
  */
 export async function login(email, password) {
-  // This is a mock implementation for demonstration
-  // In production, this should call Better Auth login endpoint
+  const response = await fetch(`${API_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
 
-  // For demo, create a mock JWT token and user
-  const mockUser = {
-    id: 'demo-user-' + Math.random().toString(36).substr(2, 9),
-    email: email,
-    name: email.split('@')[0]
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Login failed');
+  }
+
+  const data = await response.json();
+  const user = {
+    id: data.user_id,
+    email: data.email,
+    name: data.full_name || data.email.split('@')[0]
   };
 
-  // Create a proper HS256 JWT token
-  const payload = {
-    sub: mockUser.id,
-    id: mockUser.id,  // Add explicit id field
-    email: mockUser.email,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 86400 // 24 hours
-  };
+  setAuth(user, data.access_token);
+  // Also store refresh token
+  localStorage.setItem('refresh_token', data.refresh_token);
 
-  const secret = "CzkwMM4kba6uzC8l7Z9HtfRZNHFS9T26"; // Must match backend BETTER_AUTH_SECRET
-  const mockToken = await createJWT(payload, secret);
-
-  setAuth(mockUser, mockToken);
-  return mockUser;
+  return user;
 }
 
 /**
- * Signup function (simplified - in production use Better Auth)
+ * Signup function
  * @param {string} email
  * @param {string} password
  * @param {string} name
  * @returns {Promise<Object>} User object
  */
 export async function signup(email, password, name) {
-  // This is a mock implementation
-  // In production, this should call Better Auth signup endpoint
-  return login(email, password);
+  const response = await fetch(`${API_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, full_name: name }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Signup failed');
+  }
+
+  const data = await response.json();
+  const user = {
+    id: data.user_id,
+    email: data.email,
+    name: data.full_name || data.email.split('@')[0]
+  };
+
+  setAuth(user, data.access_token);
+  localStorage.setItem('refresh_token', data.refresh_token);
+
+  return user;
+}
+
+/**
+ * Refresh access token
+ * @returns {Promise<string|null>} New access token
+ */
+export async function refreshAccessToken() {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return null;
+
+  try {
+    const response = await fetch(`${API_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!response.ok) {
+      clearAuth();
+      localStorage.removeItem('refresh_token');
+      return null;
+    }
+
+    const data = await response.json();
+    const user = {
+      id: data.user_id,
+      email: data.email,
+      name: data.full_name || data.email.split('@')[0]
+    };
+
+    setAuth(user, data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    return data.access_token;
+  } catch (error) {
+    console.error('Failed to refresh token:', error);
+    return null;
+  }
 }
 
 /**
  * Logout function
  */
-export function logout() {
+export async function logout() {
+  const token = getToken();
+  if (token) {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+    } catch (e) {
+      console.error('Logout API call failed', e);
+    }
+  }
+
   clearAuth();
+  localStorage.removeItem('refresh_token');
   if (typeof window !== 'undefined') {
     window.location.href = '/';
   }

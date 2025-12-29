@@ -76,7 +76,7 @@ def create_access_token(
     return encoded_jwt
 
 
-def create_refresh_token(user_id: str) -> str:
+def create_refresh_token(user_id: str) -> tuple[str, datetime]:
     """
     Create a JWT refresh token (valid for 30 days).
 
@@ -84,9 +84,10 @@ def create_refresh_token(user_id: str) -> str:
         user_id: User ID to encode in token
 
     Returns:
-        str: Encoded JWT refresh token
+        tuple[str, datetime]: (Encoded JWT refresh token, Expiration time)
     """
-    expire = datetime.utcnow() + timedelta(days=30)
+    expires_delta = timedelta(days=30)
+    expire = datetime.utcnow() + expires_delta
 
     payload = {
         "sub": user_id,
@@ -101,7 +102,7 @@ def create_refresh_token(user_id: str) -> str:
         algorithm=settings.JWT_ALGORITHM
     )
 
-    return encoded_jwt
+    return encoded_jwt, expire
 
 
 def decode_token(token: str) -> dict:

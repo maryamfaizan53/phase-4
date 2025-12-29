@@ -16,10 +16,8 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
-# Rate limiting temporarily disabled due to slowapi compatibility issue
-# TODO: Fix slowapi integration or use alternative rate limiting solution
-# app.state.limiter = limiter
-# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # Security Headers Middleware (T090)
@@ -37,11 +35,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 # CORS Configuration (T086)
-# TODO: Configure allowed origins via environment variable for production
-# In production, restrict to frontend domain only (e.g., https://yourdomain.com)
+# Allowed origins are configured via environment variable
+allowed_origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Development frontend URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

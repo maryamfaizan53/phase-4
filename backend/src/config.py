@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     RATE_LIMIT: str = "100/minute"
+    ALLOWED_ORIGINS: str = "http://localhost:3000"  # Comma-separated list for production
 
     # Environment
     ENV: str = "development"

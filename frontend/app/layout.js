@@ -2,6 +2,7 @@
  * Modern Root layout component
  */
 import './globals.css';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 
 export const metadata = {
   title: 'Todo App - Phase II',
@@ -12,7 +13,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

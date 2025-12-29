@@ -7,7 +7,7 @@
  * - Response parsing
  */
 
-import { getToken } from './auth';
+import { getToken, refreshAccessToken } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -40,11 +40,23 @@ export async function apiRequest(endpoint, options = {}) {
       headers,
     });
 
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - attempt refresh
     if (response.status === 401) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        // Retry original request with new token
+        headers['Authorization'] = `Bearer ${newToken}`;
+        const retryResponse = await fetch(`${API_URL}${endpoint}`, {
+          ...options,
+          headers,
+        });
+        if (retryResponse.ok) return await retryResponse.json();
+      }
+
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
+        localStorage.removeItem('refresh_token');
         window.location.href = '/login';
       }
       throw new Error('Unauthorized');
