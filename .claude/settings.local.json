@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat package.json)"
+      "Bash(cat package.json)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(bash:*)",
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }
