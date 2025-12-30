@@ -36,6 +36,9 @@ class ListTasksInput(BaseModel):
     status: TaskStatusFilter = Field(
         TaskStatusFilter.ALL, description="Filter tasks by status"
     )
+    search: Optional[str] = Field(
+        None, description="Search term for filtering tasks by title or description"
+    )
     limit: int = Field(20, ge=1, le=100, description="Maximum number of tasks to return")
     offset: int = Field(0, ge=0, description="Number of tasks to skip (for pagination)")
     sort_order: SortOrder = Field(
@@ -86,6 +89,7 @@ def list_tasks(db: Session, input_data: ListTasksInput) -> dict:
         "timestamp": datetime.utcnow().isoformat(),
         "input": {
             "status": input_data.status.value,
+            "search": input_data.search,
             "limit": input_data.limit,
             "offset": input_data.offset,
             "sort_order": input_data.sort_order.value
@@ -100,6 +104,13 @@ def list_tasks(db: Session, input_data: ListTasksInput) -> dict:
         if input_data.status != TaskStatusFilter.ALL:
             query = query.where(Task.status == input_data.status.value)
 
+        # Apply search filter (case-insensitive search in title and description)
+        if input_data.search:
+            search_term = f"%{input_data.search}%"
+            query = query.where(
+                (Task.title.ilike(search_term)) | (Task.description.ilike(search_term))
+            )
+
         # Apply sort order
         if input_data.sort_order == SortOrder.NEWEST_FIRST:
             query = query.order_by(Task.created_at.desc())
@@ -110,6 +121,11 @@ def list_tasks(db: Session, input_data: ListTasksInput) -> dict:
         count_query = select(func.count()).select_from(Task).where(Task.user_id == input_data.user_id)
         if input_data.status != TaskStatusFilter.ALL:
             count_query = count_query.where(Task.status == input_data.status.value)
+        if input_data.search:
+            search_term = f"%{input_data.search}%"
+            count_query = count_query.where(
+                (Task.title.ilike(search_term)) | (Task.description.ilike(search_term))
+            )
         total_count = db.exec(count_query).one()
 
         # Apply pagination

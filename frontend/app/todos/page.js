@@ -12,6 +12,7 @@ import Navbar from '../../components/Navbar';
 import TodoList from '../../components/TodoList';
 import TodoFilters from '../../components/TodoFilters';
 import Button from '../../components/ui/Button';
+import ChatWidget from '../../components/chat/ChatWidget';
 
 export default function TodosPage() {
   const router = useRouter();
@@ -108,6 +109,9 @@ export default function TodosPage() {
             </div>
           </div>
         </main>
+
+        {/* Chat Widget */}
+        <ChatWidget userId={user?.id} onTaskUpdate={fetchTasks} />
       </div>
     </ProtectedRoute>
   );

@@ -24,7 +24,25 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push("/todos");
+      // Force page reload to refresh AuthProvider state
+      window.location.href = "/todos";
+    } catch (err) {
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setEmail("demo@example.com");
+    setPassword("demo");
+    setError("");
+    setLoading(true);
+
+    try {
+      await login("demo@example.com", "demo");
+      // Force page reload to refresh AuthProvider state
+      window.location.href = "/todos";
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -125,7 +143,27 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="mt-4 w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            >
+              Quick Demo Login
+            </button>
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
             <div className="flex items-start">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -142,9 +180,9 @@ export default function LoginPage() {
                 />
               </svg>
               <div>
-                <p className="font-semibold text-blue-800 mb-1">Demo Mode:</p>
+                <p className="font-semibold text-blue-800 mb-1">Demo Mode Active</p>
                 <p className="text-sm text-blue-700">
-                  Enter any email and password to create a demo session.
+                  Just enter ANY email and password - we'll create your account automatically!
                 </p>
               </div>
             </div>

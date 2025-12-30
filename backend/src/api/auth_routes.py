@@ -18,21 +18,8 @@ router = APIRouter(prefix="/api/auth", tags=["authentication"])
 class RegisterRequest(BaseModel):
     """User registration request"""
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=100)
+    password: str = Field(..., min_length=1, max_length=100)  # Simplified for demo
     full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
-
-    @field_validator('password')
-    @classmethod
-    def password_complexity(cls, v: str) -> str:
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r'\d', v):
-            raise ValueError('Password must contain at least one number')
-        if not re.search(r'[@$!%*?&]', v):
-            raise ValueError('Password must contain at least one special character (@$!%*?&)')
-        return v
 
 
 class LoginRequest(BaseModel):
@@ -133,6 +120,9 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """
     Authenticate a user and return tokens.
 
+    DEMO MODE: Automatically creates a user if they don't exist.
+    This is for development/demo purposes only.
+
     Args:
         request: Login credentials (email, password)
         db: Database session
@@ -148,25 +138,42 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         select(User).where(User.email == request.email)
     ).first()
 
+    # DEMO MODE: Auto-create user if they don't exist
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+        # Generate unique user_id
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+
+        # Hash password
+        password_hash = hash_password(request.password)
+
+        # Create user automatically
+        user = User(
+            user_id=user_id,
+            email=request.email,
+            password_hash=password_hash,
+            full_name=request.email.split('@')[0],  # Use email prefix as name
+            is_active=True,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
 
-    # Verify password
-    if not verify_password(request.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        # Verify password for existing users
+        if not verify_password(request.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password"
+            )
 
-    # Check if user is active
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is inactive"
-        )
+        # Check if user is active
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account is inactive"
+            )
 
     # Generate tokens
     access_token = create_access_token(user.user_id)
