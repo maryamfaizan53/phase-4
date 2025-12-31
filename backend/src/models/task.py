@@ -14,6 +14,7 @@ class Task(SQLModel, table=True):
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=2000)
     status: str = Field(default="pending", max_length=20)  # "pending" | "completed"
+    priority: str = Field(default="medium", max_length=20, index=True)  # "low" | "medium" | "high" | "urgent"
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -25,6 +26,7 @@ class Task(SQLModel, table=True):
                 "title": "buy groceries",
                 "description": "milk, eggs, bread",
                 "status": "pending",
+                "priority": "medium",
                 "created_at": "2025-12-15T10:30:00Z",
                 "updated_at": "2025-12-15T10:30:00Z",
             }

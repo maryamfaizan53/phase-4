@@ -21,18 +21,29 @@ module.exports = {
           900: '#134e4a',
         },
         dark: {
-          900: '#0f172a',
-          800: '#1e293b',
-          700: '#334155',
+          950: '#000000',
+          900: '#0a0a0a',
+          850: '#111827',
+          800: '#1f2937',
+          700: '#374151',
+          600: '#4b5563',
+        },
+        accent: {
+          teal: '#14b8a6',
+          blue: '#3b82f6',
+          purple: '#8b5cf6',
+          cyan: '#06b6d4',
         }
       },
       fontFamily: {
         sans: ['Outfit', 'Inter', 'sans-serif'],
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-        'glass-hover': '0 8px 32px 0 rgba(31, 38, 135, 0.50)',
-        'neon': '0 0 10px rgba(20, 184, 166, 0.5), 0 0 20px rgba(20, 184, 166, 0.3)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+        'glass-hover': '0 12px 48px rgba(20, 184, 166, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6)',
+        'neon': '0 0 20px rgba(20, 184, 166, 0.6), 0 0 40px rgba(20, 184, 166, 0.3)',
+        'neon-hover': '0 0 30px rgba(20, 184, 166, 0.8), 0 0 60px rgba(20, 184, 166, 0.4)',
+        'inner-glow': 'inset 0 0 20px rgba(20, 184, 166, 0.1)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',

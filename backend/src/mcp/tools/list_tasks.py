@@ -36,6 +36,9 @@ class ListTasksInput(BaseModel):
     status: TaskStatusFilter = Field(
         TaskStatusFilter.ALL, description="Filter tasks by status"
     )
+    priority: Optional[str] = Field(
+        None, description="Filter tasks by priority (low, medium, high, urgent)"
+    )
     search: Optional[str] = Field(
         None, description="Search term for filtering tasks by title or description"
     )
@@ -104,6 +107,10 @@ def list_tasks(db: Session, input_data: ListTasksInput) -> dict:
         if input_data.status != TaskStatusFilter.ALL:
             query = query.where(Task.status == input_data.status.value)
 
+        # Apply priority filter
+        if input_data.priority:
+            query = query.where(Task.priority == input_data.priority)
+
         # Apply search filter (case-insensitive search in title and description)
         if input_data.search:
             search_term = f"%{input_data.search}%"
@@ -121,6 +128,8 @@ def list_tasks(db: Session, input_data: ListTasksInput) -> dict:
         count_query = select(func.count()).select_from(Task).where(Task.user_id == input_data.user_id)
         if input_data.status != TaskStatusFilter.ALL:
             count_query = count_query.where(Task.status == input_data.status.value)
+        if input_data.priority:
+            count_query = count_query.where(Task.priority == input_data.priority)
         if input_data.search:
             search_term = f"%{input_data.search}%"
             count_query = count_query.where(
@@ -146,6 +155,7 @@ def list_tasks(db: Session, input_data: ListTasksInput) -> dict:
                 "title": task.title,
                 "description": task.description,
                 "status": task.status,
+                "priority": task.priority,
                 "created_at": task.created_at.isoformat(),
                 "updated_at": task.updated_at.isoformat(),
                 "user_id": task.user_id,

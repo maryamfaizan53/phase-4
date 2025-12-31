@@ -19,6 +19,11 @@ const BarChart = dynamic(() => import('./BarChart'), {
   ssr: false,
 });
 
+const PriorityDistributionChart = dynamic(() => import('./PriorityDistributionChart'), {
+  loading: () => <ChartSkeleton title />,
+  ssr: false,
+});
+
 /**
  * Task Charts Container Component
  * Displays all chart components in a responsive grid layout
@@ -52,11 +57,16 @@ export default function TaskCharts({ tasks = [] }) {
 
   return (
     <div className="space-y-6">
-      {/* Top Row: Donut and Line Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Top Row: Donut, Priority and Line Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Donut Chart */}
         <div className="animate-slide-up" style={{ animationDelay: '0ms' }}>
           <DonutChart tasks={tasks} />
+        </div>
+
+        {/* Priority Distribution Chart */}
+        <div className="animate-slide-up" style={{ animationDelay: '50ms' }}>
+          <PriorityDistributionChart tasks={tasks} />
         </div>
 
         {/* Line Chart */}

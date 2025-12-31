@@ -902,7 +902,10 @@ await chatAPI.sendMessage('invalid_user', 'test');
    - `trend` (string, optional) - Trend text (e.g., "+5 this week")
 3. Use existing `Card` component as container
 4. Apply glassmorphism styling
-5. Add hover effect
+5. 
+
+
+Add hover effect
 6. Make component responsive
 
 **Expected Outcome:**

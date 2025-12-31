@@ -19,12 +19,14 @@ class TaskCreate(BaseModel):
     """Task creation request"""
     title: str = Field(min_length=1, max_length=500)
     description: Optional[str] = Field(default=None, max_length=2000)
+    priority: Optional[str] = Field(default="medium", pattern="^(low|medium|high|urgent)$")
 
 
 class TaskUpdate(BaseModel):
     """Task update request"""
     title: Optional[str] = Field(default=None, min_length=1, max_length=500)
     description: Optional[str] = Field(default=None, max_length=2000)
+    priority: Optional[str] = Field(default=None, pattern="^(low|medium|high|urgent)$")
 
 
 class TaskCompleteToggle(BaseModel):
@@ -36,6 +38,7 @@ class TaskCompleteToggle(BaseModel):
 async def list_user_tasks(
     user_id: str,
     completed: Optional[str] = None,
+    priority: Optional[str] = None,
     search: Optional[str] = None,
     sort: Optional[str] = None,
     order: Optional[str] = None,
@@ -52,6 +55,7 @@ async def list_user_tasks(
     Args:
         user_id: User ID from path
         completed: Filter by completion status ("true", "false", or None for all)
+        priority: Filter by priority ("low", "medium", "high", "urgent", or None for all)
         search: Search term for title/description
         sort: Sort field (created_at, updated_at)
         order: Sort order (asc, desc)
@@ -91,6 +95,7 @@ async def list_user_tasks(
     input_data = ListTasksInput(
         user_id=user_id,
         status=status_filter,
+        priority=priority,
         search=search,
         limit=min(limit, 100),
         offset=offset,
@@ -187,7 +192,8 @@ async def create_task(
     input_data = AddTaskInput(
         user_id=user_id,
         title=task_data.title,
-        description=task_data.description
+        description=task_data.description,
+        priority=task_data.priority
     )
 
     result = add_task(db, input_data)
@@ -240,7 +246,8 @@ async def update_task_endpoint(
         user_id=user_id,
         task_id=task_id,
         title=task_data.title,
-        description=task_data.description
+        description=task_data.description,
+        priority=task_data.priority
     )
 
     result = update_task(db, input_data)

@@ -23,6 +23,9 @@ class AddTaskInput(BaseModel):
     description: Optional[str] = Field(
         None, max_length=2000, description="Optional task description with additional details"
     )
+    priority: Optional[str] = Field(
+        "medium", description="Task priority: low, medium, high, or urgent"
+    )
 
     @validator("title")
     def title_must_not_be_whitespace(cls, v):
@@ -37,6 +40,13 @@ class AddTaskInput(BaseModel):
         if v is not None:
             return v.strip() if v.strip() else None
         return v
+
+    @validator("priority")
+    def validate_priority(cls, v):
+        """Validate priority is one of the allowed values"""
+        if v and v not in ["low", "medium", "high", "urgent"]:
+            raise ValueError("Priority must be one of: low, medium, high, urgent")
+        return v or "medium"
 
 
 class AddTaskOutput(BaseModel):
@@ -113,6 +123,7 @@ def add_task(db: Session, input_data: AddTaskInput) -> dict:
             title=input_data.title.strip(),
             description=input_data.description.strip() if input_data.description else None,
             status="pending",
+            priority=input_data.priority or "medium",
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
@@ -140,6 +151,7 @@ def add_task(db: Session, input_data: AddTaskInput) -> dict:
                 "title": task.title,
                 "description": task.description,
                 "status": task.status,
+                "priority": task.priority,
                 "created_at": task.created_at.isoformat(),
                 "updated_at": task.updated_at.isoformat(),
                 "user_id": task.user_id,

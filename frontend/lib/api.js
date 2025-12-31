@@ -107,7 +107,7 @@ export const tasksAPI = {
   /**
    * Get all tasks for a user
    * @param {string} userId
-   * @param {Object} filters - Optional filters (completed, search, sort, order)
+   * @param {Object} filters - Optional filters (completed, search, sort, order, priority)
    * @returns {Promise<Array>} List of tasks
    */
   list: async (userId, filters = {}) => {
@@ -115,6 +115,9 @@ export const tasksAPI = {
 
     if (filters.completed !== undefined && filters.completed !== 'all') {
       params.append('completed', filters.completed);
+    }
+    if (filters.priority && filters.priority !== 'all') {
+      params.append('priority', filters.priority);
     }
     if (filters.search) {
       params.append('search', filters.search);
@@ -143,7 +146,7 @@ export const tasksAPI = {
   /**
    * Create a new task
    * @param {string} userId
-   * @param {Object} taskData - { title, description }
+   * @param {Object} taskData - { title, description, priority }
    * @returns {Promise<Object>} Created task
    */
   create: async (userId, taskData) => {
@@ -157,7 +160,7 @@ export const tasksAPI = {
    * Update a task
    * @param {string} userId
    * @param {string} taskId
-   * @param {Object} taskData - { title, description }
+   * @param {Object} taskData - { title, description, priority }
    * @returns {Promise<Object>} Updated task
    */
   update: async (userId, taskId, taskData) => {

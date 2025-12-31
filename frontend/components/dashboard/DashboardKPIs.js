@@ -81,6 +81,23 @@ export default function DashboardKPIs({ tasks = [] }) {
     </svg>
   );
 
+  const UrgentIcon = () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 10V3L4 14h7v7l9-11h-7z"
+      />
+    </svg>
+  );
+
   // Memoize completion rate calculation
   const completionRate = useMemo(() =>
     kpis.totalTasks > 0
@@ -90,7 +107,7 @@ export default function DashboardKPIs({ tasks = [] }) {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
       {/* Total Tasks */}
       <div className="animate-slide-up" style={{ animationDelay: '0ms' }}>
         <KPICard
@@ -128,6 +145,21 @@ export default function DashboardKPIs({ tasks = [] }) {
             kpis.pendingTasks > 0
               ? `${kpis.pendingTasks} tasks in progress`
               : 'All tasks complete!'
+          }
+        />
+      </div>
+
+      {/* Urgent Tasks */}
+      <div className="animate-slide-up" style={{ animationDelay: '250ms' }}>
+        <KPICard
+          title="Urgent"
+          value={kpis.urgentTasks}
+          icon={<UrgentIcon />}
+          color="orange"
+          trend={
+            kpis.urgentTasks > 0
+              ? 'High priority items'
+              : 'No urgent tasks'
           }
         />
       </div>

@@ -24,12 +24,17 @@ class UpdateTaskInput(BaseModel):
     description: Optional[str] = Field(
         None, max_length=2000, description="New task description (optional if title provided, null to clear)"
     )
+    priority: Optional[str] = Field(
+        None, description="Task priority: low, medium, high, or urgent"
+    )
 
     @model_validator(mode='after')
     def at_least_one_field(self):
         """Validate at least one field is provided"""
-        if self.title is None and self.description is None:
-            raise ValueError("At least one field (title or description) must be provided")
+        if self.title is None and self.description is None and self.priority is None:
+            raise ValueError("At least one field (title, description, or priority) must be provided")
+        if self.priority and self.priority not in ["low", "medium", "high", "urgent"]:
+            raise ValueError("Priority must be one of: low, medium, high, urgent")
         return self
 
 
@@ -38,7 +43,7 @@ class UpdateTaskOutput(BaseModel):
 
     success: bool = True
     task: dict
-    updated_fields: List[Literal["title", "description"]]
+    updated_fields: List[Literal["title", "description", "priority"]]
     message: str
 
 
@@ -80,11 +85,11 @@ def update_task(db: Session, input_data: UpdateTaskInput) -> dict:
 
     try:
         # Validate at least one field provided
-        if input_data.title is None and input_data.description is None:
+        if input_data.title is None and input_data.description is None and input_data.priority is None:
             return UpdateTaskError(
                 error_code="VALIDATION_ERROR",
                 message="At least one field must be provided",
-                suggestion="Specify what you want to update (title or description)",
+                suggestion="Specify what you want to update (title, description, or priority)",
             ).dict()
 
         # Query task with user isolation (FR-015)
@@ -125,6 +130,11 @@ def update_task(db: Session, input_data: UpdateTaskInput) -> dict:
             )
             updated_fields.append("description")
 
+        # Update priority if provided
+        if input_data.priority is not None:
+            task.priority = input_data.priority
+            updated_fields.append("priority")
+
         # Update timestamp
         task.updated_at = datetime.utcnow()
 
@@ -159,6 +169,7 @@ def update_task(db: Session, input_data: UpdateTaskInput) -> dict:
                 "title": task.title,
                 "description": task.description,
                 "status": task.status,
+                "priority": task.priority,
                 "created_at": task.created_at.isoformat(),
                 "updated_at": task.updated_at.isoformat(),
                 "user_id": task.user_id,

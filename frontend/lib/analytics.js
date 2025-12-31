@@ -7,7 +7,7 @@ import { differenceInDays, parseISO } from 'date-fns';
  */
 export function calculateKPIs(tasks = []) {
   if (!tasks || !Array.isArray(tasks)) {
-    return { totalTasks: 0, completedTasks: 0, pendingTasks: 0, overdueTasks: 0 };
+    return { totalTasks: 0, completedTasks: 0, pendingTasks: 0, overdueTasks: 0, urgentTasks: 0 };
   }
 
   const totalTasks = tasks.length;
@@ -26,11 +26,17 @@ export function calculateKPIs(tasks = []) {
     }
   }).length;
 
+  // Count urgent tasks: pending tasks with 'urgent' priority
+  const urgentTasks = tasks.filter(task =>
+    task.status === 'pending' && task.priority === 'urgent'
+  ).length;
+
   return {
     totalTasks,
     completedTasks,
     pendingTasks,
-    overdueTasks
+    overdueTasks,
+    urgentTasks
   };
 }
 
@@ -134,4 +140,53 @@ export function getStatusBreakdown(tasks = []) {
     status,
     count
   }));
+}
+
+/**
+ * Calculate priority distribution from task array
+ * @param {Array} tasks - Array of task objects
+ * @returns {Object} Priority counts object { low: 2, medium: 7, high: 5, urgent: 3 }
+ */
+export function calculatePriorityDistribution(tasks = []) {
+  if (!tasks || !Array.isArray(tasks)) {
+    return { low: 0, medium: 0, high: 0, urgent: 0 };
+  }
+
+  const distribution = {
+    low: 0,
+    medium: 0,
+    high: 0,
+    urgent: 0
+  };
+
+  tasks.forEach(task => {
+    const priority = task.priority || 'medium';
+    if (distribution.hasOwnProperty(priority)) {
+      distribution[priority] += 1;
+    }
+  });
+
+  return distribution;
+}
+
+/**
+ * Get priority distribution for pie/donut charts
+ * @param {Array} tasks - Array of task objects
+ * @returns {Array} Array of { name, value, priority } objects for Recharts
+ */
+export function getPriorityDistribution(tasks = []) {
+  if (!tasks || !Array.isArray(tasks)) {
+    return [];
+  }
+
+  const distribution = calculatePriorityDistribution(tasks);
+
+  // Convert to Recharts format with priority key for color mapping
+  return Object.entries(distribution)
+    .filter(([_, count]) => count > 0) // Only include non-zero values
+    .map(([priority, count]) => ({
+      name: priority.charAt(0).toUpperCase() + priority.slice(1),
+      value: count,
+      priority: priority
+    }));
 }

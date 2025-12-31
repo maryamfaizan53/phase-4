@@ -7,16 +7,20 @@ import { useState, useEffect } from "react";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
 import Card from "./ui/Card";
+import PrioritySelector from "./ui/PrioritySelector";
+import { DEFAULT_PRIORITY } from "../lib/constants/priorities";
 
 export default function TodoForm({ task, onSubmit, onCancel, loading }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState(DEFAULT_PRIORITY);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (task) {
       setTitle(task.title || "");
       setDescription(task.description || "");
+      setPriority(task.priority || DEFAULT_PRIORITY);
     }
   }, [task]);
 
@@ -30,7 +34,7 @@ export default function TodoForm({ task, onSubmit, onCancel, loading }) {
     }
 
     try {
-      await onSubmit({ title, description });
+      await onSubmit({ title, description, priority });
     } catch (err) {
       setError(err.message || "Failed to save task");
     }
@@ -70,6 +74,12 @@ export default function TodoForm({ task, onSubmit, onCancel, loading }) {
             disabled={loading}
           />
         </div>
+
+        <PrioritySelector
+          value={priority}
+          onChange={setPriority}
+          disabled={loading}
+        />
 
         <div className="flex gap-4 pt-2">
           <Button

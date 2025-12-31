@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { formatDate } from '../../lib/date-helpers';
+import PriorityBadge from '../ui/PriorityBadge';
 
 /**
  * Task Table Row Component
@@ -91,6 +92,11 @@ export default function TaskTableRow({ task, onToggleComplete, onDelete, onEdit 
           )}
         </td>
 
+        {/* Priority Badge Column */}
+        <td className="px-4 py-4">
+          <PriorityBadge priority={task.priority} size="sm" />
+        </td>
+
         {/* Status Badge Column */}
         <td className="px-4 py-4">
           <span
@@ -167,7 +173,7 @@ export default function TaskTableRow({ task, onToggleComplete, onDelete, onEdit 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <tr>
-          <td colSpan="5" className="px-4 py-0">
+          <td colSpan="6" className="px-4 py-0">
             <div
               className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 my-2"
               role="alert"

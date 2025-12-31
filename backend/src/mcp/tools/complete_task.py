@@ -18,6 +18,7 @@ class CompleteTaskInput(BaseModel):
         ..., min_length=1, max_length=255, description="ID of the user who owns the task"
     )
     task_id: int = Field(..., ge=1, description="ID of the task to mark as complete")
+    completed: bool = Field(True, description="Set to True to mark complete, False to mark pending")
 
 
 class CompleteTaskOutput(BaseModel):
@@ -80,12 +81,13 @@ def complete_task(db: Session, input_data: CompleteTaskInput) -> dict:
                 suggestion="Would you like to see your current tasks?",
             ).dict()
 
-        # Check if already completed (idempotency)
+        # Check current status
         was_already_completed = task.status == "completed"
+        new_status = "completed" if input_data.completed else "pending"
 
-        if not was_already_completed:
-            # Update task status
-            task.status = "completed"
+        # Update if status changed
+        if task.status != new_status:
+            task.status = new_status
             task.updated_at = datetime.utcnow()
             db.add(task)
             db.commit()
@@ -102,6 +104,18 @@ def complete_task(db: Session, input_data: CompleteTaskInput) -> dict:
             }
         }))
 
+        # Build appropriate message
+        if input_data.completed:
+            if was_already_completed:
+                message = f"Task #{task.id} is already completed"
+            else:
+                message = f"Great! I've marked '{task.title}' (task #{task.id}) as complete"
+        else:
+            if not was_already_completed:
+                message = f"Task #{task.id} is already pending"
+            else:
+                message = f"I've marked '{task.title}' (task #{task.id}) as pending"
+
         # Return success response
         return CompleteTaskOutput(
             success=True,
@@ -110,13 +124,12 @@ def complete_task(db: Session, input_data: CompleteTaskInput) -> dict:
                 "title": task.title,
                 "description": task.description,
                 "status": task.status,
+                "priority": task.priority,
                 "created_at": task.created_at.isoformat(),
                 "updated_at": task.updated_at.isoformat(),
                 "user_id": task.user_id,
             },
-            message=f"Great! I've marked '{task.title}' (task #{task.id}) as complete"
-            if not was_already_completed
-            else f"Task #{task.id} is already completed",
+            message=message,
             was_already_completed=was_already_completed,
         ).dict()
 

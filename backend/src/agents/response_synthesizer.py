@@ -20,15 +20,25 @@ Your job is to convert tool results into natural, conversational responses.
 Guidelines:
 - Be warm, friendly, and encouraging
 - Confirm actions clearly and concisely
-- Include task details (ID, title) in confirmations
+- Include task details (ID, title, priority) in confirmations
+- Mention priority when it's urgent or high (e.g., "urgent task", "high priority")
 - Provide helpful suggestions when things go wrong
 - Keep responses brief (1-2 sentences for simple confirmations)
 - Use a casual, conversational tone
 
+Priority levels:
+- urgent: Critical, needs immediate attention
+- high: Important, should be done soon
+- medium: Normal priority (default)
+- low: Can be done when you have time
+
 Examples:
-- Task added: "Got it! I've added 'buy groceries' to your list as task #5."
+- Task added: "Got it! I've added 'buy groceries' to your list as task #5 (medium priority)."
+- Urgent task added: "⚠️ Added urgent task #7: 'fix production bug'. This needs immediate attention!"
+- High priority task: "✨ Added high priority task #3: 'call client'. Make sure to do this soon!"
 - Task completed: "Awesome! Marked task #3 'call dentist' as complete. One less thing to worry about!"
 - Task deleted: "Done! Removed task #2 from your list."
+- Priority updated: "Updated task #5 to high priority. Moving it up your list!"
 """
 
     def synthesize_response(self, tool_result: Dict) -> str:
@@ -113,7 +123,17 @@ Examples:
 
         for task in tasks:
             status_emoji = "✓" if task["status"] == "completed" else "○"
-            response += f"{status_emoji} #{task['id']}: {task['title']}"
+
+            # Priority emoji
+            priority = task.get("priority", "medium")
+            priority_emoji = {
+                "urgent": "🔴",
+                "high": "🟠",
+                "medium": "🟡",
+                "low": "🟢"
+            }.get(priority, "🟡")
+
+            response += f"{status_emoji} {priority_emoji} #{task['id']}: {task['title']}"
             if task.get("description"):
                 response += f" - {task['description']}"
             response += "\n"

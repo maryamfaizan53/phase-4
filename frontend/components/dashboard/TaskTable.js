@@ -10,6 +10,7 @@ import TaskTableRow from './TaskTableRow';
 export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEdit }) {
   // Filter and pagination state
   const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,6 +34,11 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
       filtered = filtered.filter((task) => task.status === statusFilter);
     }
 
+    // Filter by priority
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter((task) => task.priority === priorityFilter);
+    }
+
     // Filter by search query (debounced)
     if (debouncedSearchQuery.trim()) {
       const query = debouncedSearchQuery.toLowerCase();
@@ -44,7 +50,7 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
     }
 
     return filtered;
-  }, [tasks, statusFilter, debouncedSearchQuery]);
+  }, [tasks, statusFilter, priorityFilter, debouncedSearchQuery]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
@@ -55,6 +61,11 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
   // Reset to page 1 when filters change
   const handleStatusChange = (e) => {
     setStatusFilter(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePriorityChange = (e) => {
+    setPriorityFilter(e.target.value);
     setCurrentPage(1);
   };
 
@@ -107,6 +118,22 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
             </div>
           </div>
 
+          {/* Priority Filter */}
+          <div className="sm:w-48">
+            <select
+              value={priorityFilter}
+              onChange={handlePriorityChange}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent cursor-pointer"
+              aria-label="Filter tasks by priority"
+            >
+              <option value="all">All Priority</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
           {/* Status Filter */}
           <div className="sm:w-48">
             <select
@@ -148,7 +175,7 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
           </svg>
           <h4 className="text-lg font-semibold text-white mb-2">No Tasks Found</h4>
           <p className="text-white/60">
-            {searchQuery || statusFilter !== 'all'
+            {searchQuery || statusFilter !== 'all' || priorityFilter !== 'all'
               ? 'Try adjusting your filters or search query'
               : 'Create your first task to get started!'}
           </p>
@@ -165,6 +192,9 @@ export default function TaskTable({ tasks = [], onToggleComplete, onDelete, onEd
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                     Task
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider w-32">
+                    Priority
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-white/70 uppercase tracking-wider w-32">
                     Status

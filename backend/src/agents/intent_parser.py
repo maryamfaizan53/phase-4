@@ -1,6 +1,7 @@
 """Intent Parser Agent - Classifies user intent and extracts parameters"""
 from typing import Dict, Optional, Literal
 import json
+from src.agents.llm_client import llm_client
 
 
 class IntentParserAgent:
@@ -8,13 +9,14 @@ class IntentParserAgent:
     Intent Parser sub-agent for analyzing natural language input.
 
     Classifies user intent into tool operations (add, list, complete, update, delete)
-    and extracts parameters from natural language.
-    
+    and extracts parameters from natural language using LLM.
+
     Supports both English and Urdu language input.
     """
 
-    def __init__(self):
+    def __init__(self, use_llm: bool = True):
         """Initialize Intent Parser agent"""
+        self.use_llm = use_llm
         self.system_prompt = """You are an intent classification agent for a todo management system.
 
 Your job is to analyze user messages and determine:
@@ -24,33 +26,52 @@ Your job is to analyze user messages and determine:
 For add_task intent:
 - Extract the task title (required)
 - Extract the task description (optional)
+- Extract the task priority (urgent, high, medium, low) - default to "medium" if not specified
 
-Return a JSON object with:
+For update_task intent:
+- Extract task_id (required)
+- Extract new title (optional)
+- Extract new description (optional)
+- Extract new priority (optional)
+
+For complete_task intent:
+- Extract task_id or task_title (one required)
+
+For delete_task intent:
+- Extract task_id (required)
+
+For list_tasks intent:
+- Extract status filter: "all", "pending", or "completed" (default: "all")
+
+Return ONLY a valid JSON object (no markdown, no code blocks) with this structure:
 {
     "intent": "add_task" | "list_tasks" | "complete_task" | "update_task" | "delete_task" | "conversational" | "unclear",
     "confidence": 0.0 to 1.0,
     "parameters": {
         "title": "extracted title",
-        "description": "extracted description" (optional)
+        "description": "extracted description",
+        "priority": "urgent" | "high" | "medium" | "low",
+        "task_id": 123,
+        "status": "all" | "pending" | "completed"
     }
 }
 
 Examples:
-- "Remind me to buy groceries" -> {"intent": "add_task", "confidence": 0.9, "parameters": {"title": "buy groceries"}}
-- "Add task: call dentist for appointment" -> {"intent": "add_task", "confidence": 0.95, "parameters": {"title": "call dentist for appointment"}}
-- "I need to finish the report" -> {"intent": "add_task", "confidence": 0.85, "parameters": {"title": "finish the report"}}
+- "Remind me to buy groceries" -> {"intent": "add_task", "confidence": 0.9, "parameters": {"title": "buy groceries", "priority": "medium"}}
+- "Add an urgent task to fix production bug" -> {"intent": "add_task", "confidence": 0.95, "parameters": {"title": "fix production bug", "priority": "urgent"}}
+- "Show my tasks" -> {"intent": "list_tasks", "confidence": 0.9, "parameters": {"status": "all"}}
+- "Complete task 5" -> {"intent": "complete_task", "confidence": 0.95, "parameters": {"task_id": 5}}
+- "Change task 3 priority to high" -> {"intent": "update_task", "confidence": 0.9, "parameters": {"task_id": 3, "priority": "high"}}
 - "do that thing" -> {"intent": "unclear", "confidence": 0.3, "parameters": {}}
-- "Create a task" -> {"intent": "unclear", "confidence": 0.5, "parameters": {}}
 
 If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "unclear".
 """
 
     def parse_intent(self, user_message: str, language: Literal["en", "ur"] = "en") -> Dict:
         """
-        Parse user message to extract intent and parameters.
+        Parse user message to extract intent and parameters using LLM.
 
-        For User Story 1 (add_task only), this is a simplified rule-based parser.
-        In production, this would use an LLM or ML model.
+        Uses LLM for natural language understanding with fallback to rule-based parsing.
 
         Args:
             user_message: User's natural language message
@@ -59,6 +80,15 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
         Returns:
             dict: Intent classification with confidence and parameters
         """
+        # Use LLM for intent parsing if enabled
+        if self.use_llm:
+            try:
+                return self._parse_with_llm(user_message, language)
+            except Exception as e:
+                print(f"LLM intent parsing error: {e}, falling back to rule-based")
+                # Fall through to rule-based parsing
+
+        # Fallback to rule-based parsing
         message_lower = user_message.lower().strip()
 
         # Get language-specific keywords
@@ -188,6 +218,9 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
             # Extract new title and/or description
             update_params = self._extract_update_parameters(user_message, message_lower)
 
+            # Extract priority if mentioned
+            priority = self._extract_priority(message_lower) if any(p in message_lower for p in ["priority", "urgent", "important", "critical", "low", "high", "medium"]) else None
+
             # Check for contextual reference without concrete task ID
             if (
                 has_contextual_reference
@@ -209,7 +242,7 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
                     "reason": "Cannot identify which task to update",
                 }
 
-            if not update_params.get("title") and not update_params.get("description"):
+            if not update_params.get("title") and not update_params.get("description") and not priority:
                 return {
                     "intent": "unclear",
                     "confidence": 0.4,
@@ -224,6 +257,7 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
                     "task_id": task_id or update_params.get("task_id"),
                     "title": update_params.get("title"),
                     "description": update_params.get("description"),
+                    "priority": priority,
                 },
             }
 
@@ -280,10 +314,13 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
                     "reason": "Cannot extract meaningful task title",
                 }
 
+            # Extract priority from message
+            priority = self._extract_priority(message_lower)
+
             return {
                 "intent": "add_task",
                 "confidence": 0.9 if has_add_keyword else 0.75,
-                "parameters": {"title": title, "description": None},
+                "parameters": {"title": title, "description": None, "priority": priority},
             }
 
         # Default: unclear
@@ -293,6 +330,65 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
             "parameters": {},
             "reason": "Intent not recognized",
         }
+
+    def _parse_with_llm(self, user_message: str, language: str) -> Dict:
+        """
+        Use LLM to parse user intent and extract parameters.
+
+        Args:
+            user_message: User's natural language message
+            language: Language code ("en" or "ur")
+
+        Returns:
+            dict: Intent classification with confidence and parameters
+        """
+        # Add language context to prompt if Urdu
+        user_prompt = user_message
+        if language == "ur":
+            user_prompt = f"[Language: Urdu] {user_message}"
+
+        # Call LLM
+        llm_response = llm_client.generate_response(
+            system_prompt=self.system_prompt,
+            user_message=user_prompt,
+            temperature=0.3,  # Lower temperature for more consistent parsing
+            max_tokens=300,
+        )
+
+        # Parse JSON response
+        try:
+            # Clean response (remove markdown code blocks if present)
+            cleaned_response = llm_response.strip()
+            if cleaned_response.startswith("```json"):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.startswith("```"):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith("```"):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+
+            result = json.loads(cleaned_response)
+
+            # Validate required fields
+            if "intent" not in result or "confidence" not in result:
+                raise ValueError("Missing required fields in LLM response")
+
+            # Ensure parameters dict exists
+            if "parameters" not in result:
+                result["parameters"] = {}
+
+            return result
+
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Failed to parse LLM response as JSON: {e}")
+            print(f"LLM response was: {llm_response}")
+            # Return unclear intent as fallback
+            return {
+                "intent": "unclear",
+                "confidence": 0.3,
+                "parameters": {},
+                "reason": "Failed to understand message"
+            }
 
     def _extract_status_filter(self, message: str) -> str:
         """Extract status filter from message"""
@@ -401,6 +497,29 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
 
         # If no prefix matched, return the whole message as title
         return message
+
+    def _extract_priority(self, message: str) -> str:
+        """
+        Extract priority level from message.
+
+        Returns one of: "urgent", "high", "medium", "low"
+        Defaults to "medium" if no priority indicators found.
+        """
+        # Priority keywords mapping (order matters - check specific before general)
+        priority_keywords = {
+            "urgent": ["urgent", "asap", "critical", "emergency", "immediately", "right now", "top priority"],
+            "high": ["high priority", "important", "high", "soon", "crucial", "vital"],
+            "low": ["low priority", "low", "minor", "when i get time", "not urgent", "whenever"],
+            "medium": ["medium priority", "medium", "normal", "regular"],
+        }
+
+        # Check for explicit priority mentions (most specific first)
+        for priority, keywords in priority_keywords.items():
+            if any(keyword in message for keyword in keywords):
+                return priority
+
+        # Default to medium if no priority indicators found
+        return "medium"
 
     def _extract_update_parameters(
         self, message: str, message_lower: str

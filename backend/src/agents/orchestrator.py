@@ -79,6 +79,7 @@ class OrchestratorAgent:
             # Extract parameters
             title = parameters.get("title")
             description = parameters.get("description")
+            priority = parameters.get("priority", "medium")
 
             # Validate we have required parameters
             if not title or not title.strip():
@@ -88,7 +89,7 @@ class OrchestratorAgent:
 
             # Execute add_task tool
             tool_input = AddTaskInput(
-                user_id=user_id, title=title, description=description
+                user_id=user_id, title=title, description=description, priority=priority
             )
 
             # Step 8: Tool queries/modifies database
@@ -164,6 +165,7 @@ class OrchestratorAgent:
             task_id = parameters.get("task_id")
             new_title = parameters.get("title")
             new_description = parameters.get("description")
+            new_priority = parameters.get("priority")
 
             # Validate we have task_id and at least one field to update
             if not task_id:
@@ -171,7 +173,7 @@ class OrchestratorAgent:
                     "Cannot identify which task to update"
                 )
 
-            if not new_title and not new_description:
+            if not new_title and not new_description and not new_priority:
                 return self.response_synthesizer.synthesize_clarification(
                     "Cannot determine what to update"
                 )
@@ -182,6 +184,7 @@ class OrchestratorAgent:
                 task_id=task_id,
                 title=new_title,
                 description=new_description,
+                priority=new_priority,
             )
 
             # Step 8: Tool modifies database
