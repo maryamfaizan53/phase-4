@@ -12,6 +12,7 @@ from src.api.dependencies import get_db, get_current_user
 from src.api.auth_utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from src.models.user import User
 from src.models.refresh_token import RefreshToken
+from src.config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
@@ -138,28 +139,35 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         select(User).where(User.email == request.email)
     ).first()
 
-    # DEMO MODE: Auto-create user if they don't exist
+    # AUTO-CREATE MODE: Check if enabled in settings
     if not user:
-        # Generate unique user_id
-        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        if settings.AUTH_AUTO_CREATE_USERS:
+            # Generate unique user_id
+            user_id = f"user_{uuid.uuid4().hex[:12]}"
 
-        # Hash password
-        password_hash = hash_password(request.password)
+            # Hash password
+            password_hash = hash_password(request.password)
 
-        # Create user automatically
-        user = User(
-            user_id=user_id,
-            email=request.email,
-            password_hash=password_hash,
-            full_name=request.email.split('@')[0],  # Use email prefix as name
-            is_active=True,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
-        )
+            # Create user automatically
+            user = User(
+                user_id=user_id,
+                email=request.email,
+                password_hash=password_hash,
+                full_name=request.email.split('@')[0],  # Use email prefix as name
+                is_active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
 
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            # Auto-creation disabled, fail the login
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password"
+            )
     else:
         # Verify password for existing users
         if not verify_password(request.password, user.password_hash):

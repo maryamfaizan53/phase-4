@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 /**
  * ChatMessage Component
  *
@@ -5,7 +7,7 @@
  * Displays different styling for user vs assistant messages.
  */
 
-export default function ChatMessage({ role, content }) {
+const ChatMessage = memo(function ChatMessage({ role, content }) {
   // Determine alignment and styling based on role
   const isUser = role === 'user';
   const isAssistant = role === 'assistant';
@@ -35,4 +37,6 @@ export default function ChatMessage({ role, content }) {
       </div>
     </div>
   );
-}
+});
+
+export default ChatMessage;

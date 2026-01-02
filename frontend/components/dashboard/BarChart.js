@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   BarChart as RechartsBarChart,
   Bar,
@@ -17,8 +18,8 @@ import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
  * Displays task counts by status
  */
 export default function BarChart({ tasks = [] }) {
-  // Get status breakdown data
-  const data = getStatusBreakdown(tasks);
+  // Memoize status breakdown data to avoid recalculation on every render
+  const data = useMemo(() => getStatusBreakdown(tasks), [tasks]);
 
   // Custom tooltip config
   const tooltipConfig = getChartTooltipConfig();

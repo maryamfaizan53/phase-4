@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -18,8 +19,8 @@ import { CHART_COLORS, getChartTooltipConfig } from '../../lib/chart-utils';
  * Displays task creation and completion trends over the last 7 days
  */
 export default function LineChart({ tasks = [] }) {
-  // Get time series data for last 7 days
-  const data = getTimeSeriesData(tasks, 7);
+  // Memoize time series data to avoid recalculation on every render
+  const data = useMemo(() => getTimeSeriesData(tasks, 7), [tasks]);
 
   // Custom tooltip config
   const tooltipConfig = getChartTooltipConfig();

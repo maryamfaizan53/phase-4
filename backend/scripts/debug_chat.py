@@ -48,6 +48,12 @@ def test_response_synthesizer():
         print(f"Response Synthesizer Error: {e}")
 
 if __name__ == "__main__":
+
+    from src.config import settings
+    print(f"LLM Provider: {settings.LLM_PROVIDER}")
+    print(f"Model: {settings.LLM_MODEL}")
+    has_key = bool(settings.OPENAI_API_KEY) or bool(settings.OPENROUTER_API_KEY)
+    print(f"Has API Key: {has_key}")
+
     test_intent_parser()
-    # Uncomment to test LLM if you are sure about cost/access
-    # test_response_synthesizer()
+    test_response_synthesizer()

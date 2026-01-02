@@ -61,7 +61,7 @@ class LLMClient:
                     ],
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    timeout=30.0,
+                    timeout=45.0,
                 )
 
                 return response.choices[0].message.content.strip()
@@ -140,7 +140,7 @@ class LLMClient:
                     messages=chat_messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    timeout=30.0,
+                    timeout=45.0,
                 )
 
                 return response.choices[0].message.content.strip()

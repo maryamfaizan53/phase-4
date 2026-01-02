@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { formatDate } from '../../lib/date-helpers';
 
 /**
  * Task Table Row Component
  * Displays a single task row in the task table
  */
-export default function TaskTableRow({ task, onToggleComplete, onDelete, onEdit }) {
+const TaskTableRow = memo(function TaskTableRow({ task, onToggleComplete, onDelete, onEdit }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -205,4 +205,6 @@ export default function TaskTableRow({ task, onToggleComplete, onDelete, onEdit 
       )}
     </>
   );
-}
+});
+
+export default TaskTableRow;

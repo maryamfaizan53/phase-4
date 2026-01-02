@@ -1,10 +1,12 @@
 'use client';
 
+import { memo } from 'react';
+
 /**
  * KPI Card Component
  * Displays a single key performance indicator with icon, value, and optional trend
  */
-export default function KPICard({ title, value, icon, color = 'brand', trend }) {
+const KPICard = memo(function KPICard({ title, value, icon, color = 'brand', trend }) {
   // Color variant mappings
   const colorVariants = {
     brand: {
@@ -89,4 +91,6 @@ export default function KPICard({ title, value, icon, color = 'brand', trend }) 
       </div>
     </div>
   );
-}
+});
+
+export default KPICard;

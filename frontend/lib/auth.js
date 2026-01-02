@@ -58,49 +58,6 @@ export function clearAuth() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
 }
 
-/**
- * Simple HS256 JWT signing for demo purposes
- * NOTE: This is a TEMPORARY implementation. In production, use Better Auth.
- */
-async function createJWT(payload, secret) {
-  // JWT Header
-  const header = {
-    alg: 'HS256',
-    typ: 'JWT'
-  };
-
-  // Base64URL encode
-  const base64UrlEncode = (obj) => {
-    return btoa(JSON.stringify(obj))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-  };
-
-  const encodedHeader = base64UrlEncode(header);
-  const encodedPayload = base64UrlEncode(payload);
-
-  // Create signature using Web Crypto API
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`${encodedHeader}.${encodedPayload}`);
-  const keyData = encoder.encode(secret);
-
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
-  const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-
-  return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
-}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
