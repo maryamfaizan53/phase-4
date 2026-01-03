@@ -75,9 +75,16 @@ backend:
   # Environment variables
   env:
     DATABASE_URL: "postgresql://user:pass@host.docker.internal:5432/phase4_db"
-    JWT_SECRET_KEY: "your-secret-key-minimum-32-characters-long"
+    OPENAI_API_KEY: "sk-placeholder-replace-with-actual-key"
+    OPENROUTER_API_KEY: "sk-or-placeholder-replace-with-actual-key"
+    LLM_PROVIDER: "openrouter"
+    LLM_MODEL: "google/gemini-2.0-flash-exp:free"
+    LLM_BASE_URL: "https://openrouter.ai/api/v1"
+    JWT_SECRET_KEY: "your-secret-key-minimum-32-characters-long-replace-this"
+    JWT_ALGORITHM: "HS256"
     PORT: "8000"
     API_HOST: "0.0.0.0"
+    ALLOWED_ORIGINS: "http://localhost:3000"
     ENV: "production"
     DEBUG: "false"
 

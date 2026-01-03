@@ -43,6 +43,14 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Selector labels
+*/}}
+{{- define "todo-chatbot.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "todo-chatbot.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Selector labels for frontend
 */}}
 {{- define "todo-chatbot.frontend.selectorLabels" -}}

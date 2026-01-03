@@ -3,11 +3,13 @@
 ## Overview
 
 This guide covers deploying the full-stack Todo App to production, including:
-- Frontend (Next.js) deployment to Vercel
-- Backend (FastAPI) deployment to Railway/Render
-- Database (PostgreSQL) on Neon
+- **Frontend (Next.js)** deployment to **Vercel**
+- **Backend (FastAPI)** deployment to **Railway** (with Docker)
+- **Database (PostgreSQL)** on Railway
 - Environment configuration
 - Post-deployment verification
+
+**Quick Start**: Follow Phases 1-3 for basic deployment. This project uses Docker for the backend.
 
 ---
 
@@ -44,200 +46,184 @@ npm install -g vercel
 
 ---
 
-## Phase 1: Database Setup (Neon PostgreSQL)
+## Phase 1: Backend Deployment to Railway
 
-### 1.1 Create Neon Project
+Railway will handle both the backend application and PostgreSQL database. We'll set this up first so the frontend can connect to it.
 
-1. Go to https://console.neon.tech/
-2. Click "Create Project"
-3. Project settings:
-   - Name: `todo-app-production`
-   - Region: Choose closest to your users
-   - PostgreSQL version: 15 or 16
-4. Click "Create Project"
+### 1.1 Create Railway Project
 
-### 1.2 Get Connection String
+1. Go to https://railway.app and sign in with GitHub
+2. Click **"New Project"**
+3. Select **"Deploy from GitHub repo"**
+4. Authorize Railway to access your GitHub account
+5. Select your repository (`phase-4`)
 
-1. In Neon dashboard, click "Connection Details"
-2. Copy the connection string (Pooled connection recommended)
-3. Format: `postgresql://user:password@host/database?sslmode=require`
-4. Save this as `DATABASE_URL` for backend deployment
+### 1.2 Add PostgreSQL Database
 
-### 1.3 Initialize Database
+1. In your Railway project, click **"+ New"**
+2. Select **"Database"** → **"Add PostgreSQL"**
+3. Railway will automatically provision a PostgreSQL instance
+4. The `DATABASE_URL` variable will be auto-created and linked to your backend service
 
-Run migrations on Neon database:
+### 1.3 Configure Backend Service
 
-```bash
-# From backend directory
-cd backend
-
-# Set DATABASE_URL temporarily
-export DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-
-# Run migrations (if you have alembic)
-alembic upgrade head
-
-# Or run your initialization script
-python -m src.init_db
-```
+1. Click on your backend service in the Railway dashboard
+2. Go to **"Settings"** tab
+3. Set **Root Directory** to `backend`
+4. Railway will auto-detect the `Dockerfile` in the backend directory
+5. Build and deploy will happen automatically using Docker
 
 ---
 
-## Phase 2: Backend Deployment (FastAPI)
+## Phase 2: Configure Backend Environment Variables
 
-### Option A: Deploy to Railway
+### 2.1 Set Required Environment Variables
 
-#### 2A.1 Prepare Backend
+In your Railway backend service, go to the **"Variables"** tab and add these environment variables:
 
-1. Ensure `backend/requirements.txt` exists and is updated:
-   ```bash
-   cd backend
-   pip freeze > requirements.txt
-   ```
+```bash
+# Database (auto-created by Railway PostgreSQL - reference it)
+DATABASE_URL=${{Postgres.DATABASE_URL}}
 
-2. Create `backend/Procfile`:
-   ```
-   web: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
-   ```
+# JWT Configuration (generate a strong secret!)
+JWT_SECRET_KEY=your-secure-random-string-minimum-32-characters-long
+JWT_ALGORITHM=HS256
 
-3. Create `backend/railway.json` (optional):
-   ```json
-   {
-     "$schema": "https://railway.app/railway.schema.json",
-     "build": {
-       "builder": "NIXPACKS"
-     },
-     "deploy": {
-       "startCommand": "uvicorn src.api.main:app --host 0.0.0.0 --port $PORT",
-       "restartPolicyType": "ON_FAILURE",
-       "restartPolicyMaxRetries": 10
-     }
-   }
-   ```
+# LLM Configuration - Choose OpenRouter (free tier) or OpenAI
+LLM_PROVIDER=openrouter
+LLM_MODEL=xiaomi/mimo-v2-flash:free
+LLM_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_API_KEY=your-openrouter-api-key
 
-#### 2A.2 Deploy to Railway
+# OR for OpenAI (comment out OpenRouter above):
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=your-openai-api-key
 
-1. Go to https://railway.app/
-2. Click "New Project" → "Deploy from GitHub repo"
-3. Select your repository
-4. Root directory: `backend`
-5. Add environment variables:
-   ```
-   DATABASE_URL=<your-neon-connection-string>
-   JWT_SECRET=<generate-strong-secret>
-   CLAUDE_API_KEY=<your-claude-api-key>
-   ALLOWED_ORIGINS=https://your-frontend-domain.vercel.app
-   ```
-6. Click "Deploy"
-7. Note the Railway URL (e.g., `https://your-app.railway.app`)
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+ENV=production
+DEBUG=false
 
-### Option B: Deploy to Render
+# CORS - Will update after Vercel deployment
+ALLOWED_ORIGINS=https://your-app.vercel.app
+```
 
-#### 2B.1 Prepare Backend
+**Important Notes:**
+- Generate `JWT_SECRET_KEY` using: `openssl rand -base64 32` (or any 32+ character random string)
+- Get free OpenRouter API key at https://openrouter.ai/keys
+- We'll update `ALLOWED_ORIGINS` after deploying the frontend in Phase 3
 
-Same as Railway preparation (Procfile, requirements.txt)
+### 2.2 Deploy Backend
 
-#### 2B.2 Deploy to Render
+1. Railway will automatically build and deploy using the `Dockerfile`
+2. Monitor deployment in the **"Deployments"** tab
+3. Wait for build to complete (typically 2-5 minutes)
+4. Once deployed, go to **"Settings"** → **"Networking"** → **"Generate Domain"**
+5. Copy your backend URL (e.g., `https://your-app.up.railway.app`)
+6. **Save this URL** - you'll need it for frontend configuration
 
-1. Go to https://dashboard.render.com/
-2. Click "New" → "Web Service"
-3. Connect your GitHub repository
-4. Settings:
-   - Name: `todo-app-backend`
-   - Root Directory: `backend`
-   - Environment: `Python 3`
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variables (same as Railway)
-6. Choose instance type (Free tier for testing)
-7. Click "Create Web Service"
-8. Note the Render URL (e.g., `https://your-app.onrender.com`)
+### 2.3 Run Database Migrations
+
+You need to run Alembic migrations to initialize the database schema:
+
+**Option A: Using Railway CLI (Recommended)**
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Link to your project
+railway link
+
+# Run migrations
+railway run alembic upgrade head
+```
+
+**Option B: Add migration command to Dockerfile**
+The `backend/Dockerfile` already handles running the application. For one-time migration, use Option A.
+
+### 2.4 Verify Backend Deployment
+
+1. Visit your Railway backend URL
+2. Check the health endpoint: `https://your-app.up.railway.app/health`
+3. You should see: `{"status":"healthy"}` or similar response
 
 ---
 
-## Phase 3: Frontend Deployment (Next.js to Vercel)
+## Phase 3: Frontend Deployment to Vercel
 
-### 3.1 Prepare Frontend
+### 3.1 Deploy to Vercel via GitHub
 
-1. Update environment variables in `frontend/.env.local`:
-   ```env
-   NEXT_PUBLIC_API_URL=https://your-backend-url.railway.app
-   ```
+Vercel will automatically detect Next.js and handle the build process. **No Dockerfile needed** for frontend.
 
-2. Ensure `frontend/package.json` has build script:
-   ```json
-   {
-     "scripts": {
-       "build": "next build",
-       "start": "next start"
-     }
-   }
-   ```
+1. Go to https://vercel.com and sign in with GitHub
+2. Click **"Add New..."** → **"Project"**
+3. Import your GitHub repository (`phase-4`)
+4. Vercel will auto-detect the Next.js framework
 
-3. Test production build locally:
-   ```bash
-   cd frontend
-   npm run build
-   npm start
-   ```
+### 3.2 Configure Build Settings
 
-### 3.2 Deploy to Vercel (Method 1: Vercel CLI)
+In the project configuration screen:
+
+- **Framework Preset**: Next.js (auto-detected)
+- **Root Directory**: `frontend`
+- **Build Command**: `npm run build` (default, leave as-is)
+- **Output Directory**: `.next` (default, leave as-is)
+- **Install Command**: `npm install` (default, leave as-is)
+
+### 3.3 Set Environment Variables
+
+**Before deploying**, add environment variables in the Vercel configuration:
+
+1. In the "Environment Variables" section, add:
 
 ```bash
-cd frontend
+# Backend API URL (use your Railway backend URL from Phase 2.2)
+NEXT_PUBLIC_API_URL=https://your-app.up.railway.app
 
-# Login to Vercel
-vercel login
-
-# Deploy
-vercel --prod
-
-# Follow prompts:
-# - Set up and deploy? Yes
-# - Which scope? Your account
-# - Link to existing project? No
-# - Project name? todo-app-frontend
-# - Directory? ./
-# - Override settings? No
+# Better Auth Secret (same as in your local .env.local)
+BETTER_AUTH_SECRET=CzkwMM4kba6uzC8l7Z9HtfRZNHFS9T26
 ```
 
-### 3.3 Deploy to Vercel (Method 2: GitHub Integration)
+**Important**: Replace `https://your-app.up.railway.app` with the actual Railway backend URL you saved in Phase 2, Step 2.2.
 
-1. Go to https://vercel.com/new
-2. Import your Git repository
-3. Configure project:
-   - Framework Preset: `Next.js`
-   - Root Directory: `frontend`
-   - Build Command: `npm run build` (default)
-   - Output Directory: `.next` (default)
-4. Add environment variables:
+### 3.4 Deploy Frontend
+
+1. Click **"Deploy"**
+2. Vercel will:
+   - Install dependencies
+   - Build the Next.js app
+   - Deploy to production (typically 1-3 minutes)
+3. Once complete, Vercel will provide a deployment URL
+4. Example: `https://phase-4.vercel.app` or `https://your-project-name.vercel.app`
+5. **Save this URL** - you need it for the next step
+
+### 3.5 Update Backend CORS Settings
+
+Now that you have the Vercel frontend URL, update the backend CORS configuration:
+
+1. Go back to **Railway** → Your backend service → **"Variables"**
+2. Update the `ALLOWED_ORIGINS` variable:
+   ```bash
+   ALLOWED_ORIGINS=https://your-project-name.vercel.app
    ```
-   NEXT_PUBLIC_API_URL=https://your-backend-url.railway.app
-   ```
-5. Click "Deploy"
-6. Note your frontend URL (e.g., `https://todo-app-frontend.vercel.app`)
+3. Replace with your actual Vercel URL from step 3.4
+4. Railway will automatically redeploy the backend with the new CORS settings
 
-### 3.4 Update Backend CORS
+### 3.6 Verify Full Stack Deployment
 
-After frontend deployment, update backend `ALLOWED_ORIGINS`:
+1. Visit your Vercel frontend URL
+2. Test the following flow:
+   - **Login**: Should redirect to `/todos` after login
+   - **Create Task**: Navigate to `/todos/new` and create a task
+   - **Dashboard**: Visit `/dashboard` to see KPIs and charts
+   - **Task Management**: Toggle complete, edit, or delete tasks
+   - **Chat** (if enabled): Test the chat widget
 
-```python
-# backend/src/config.py or backend/src/api/main.py
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://todo-app-frontend.vercel.app",  # Production
-        "https://your-custom-domain.com",        # Custom domain if any
-        "http://localhost:3000",                  # Local development
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
-Redeploy backend after this change.
+If everything works, your deployment is complete!
 
 ---
 

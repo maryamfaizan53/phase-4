@@ -28,8 +28,9 @@ WORKDIR /app
 RUN useradd --create-home --shell /bin/bash appuser && \
     chown -R appuser:appuser /app
 
-# Copy Python packages from dependencies stage
+# Copy Python packages and executables from dependencies stage
 COPY --from=dependencies /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=dependencies /usr/local/bin /usr/local/bin
 
 # Copy application source code
 COPY --chown=appuser:appuser . .
