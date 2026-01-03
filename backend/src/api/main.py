@@ -72,7 +72,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint.
+    Health check endpoint for Railway deployment.
 
     Returns:
         dict: Health status and environment info

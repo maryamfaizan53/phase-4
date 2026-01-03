@@ -76,7 +76,7 @@ Note: This references the Railway PostgreSQL database you created
 **JWT Configuration**
 ```
 Variable name: JWT_SECRET_KEY
-Value: e15c4146e3b3c6828c8aaf9338835fdd08a73160e284b105050fb2f3e4b0f5b4
+Value: <copy-from-your-backend-env-file>
 ```
 
 ```
@@ -87,13 +87,13 @@ Value: HS256
 **OpenAI API Key**
 ```
 Variable name: OPENAI_API_KEY
-Value: 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
+Value: <copy-from-your-backend-env-file>
 ```
 
 **OpenRouter API Key**
 ```
 Variable name: OPENROUTER_API_KEY
-Value: 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
+Value: <copy-from-your-backend-env-file>
 ```
 
 **LLM Configuration**
