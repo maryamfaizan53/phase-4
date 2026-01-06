@@ -28,13 +28,15 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
   const inputRef = useRef(null);
 
   // Auto-scroll to bottom when messages change
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (behavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior });
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, loading]);
 
   // Focus input when widget opens
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
 
     // Add user message
     const userMessage = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'user',
       content: message,
     };
@@ -63,7 +65,7 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
 
       // Add assistant response
       const assistantMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `ast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'assistant',
         content: response.response || 'I apologize, I couldn\'t process that request.',
       };
@@ -78,7 +80,7 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
 
       // Add error message
       const errorMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `err-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
       };
@@ -101,6 +103,26 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
     if (transcript.trim()) {
       handleSendMessage(transcript);
     }
+  };
+
+  // Clear chat history
+  const clearChat = () => {
+    if (window.confirm('Clear conversation history?')) {
+      setMessages([
+        {
+          id: 'greeting',
+          role: 'assistant',
+          content: 'Hello! I can help you manage your tasks. Try saying "list my tasks" or "add a new task".',
+        },
+      ]);
+    }
+  };
+
+  // Auto-expand textarea
+  const adjustTextareaHeight = (e) => {
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   };
 
   // Toggle widget open/close
@@ -169,26 +191,38 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
               </div>
             </div>
 
-            <button
-              onClick={toggleWidget}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
-              aria-label="Close chat"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={clearChat}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors group relative"
+                title="Clear Chat"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+
+              <button
+                onClick={toggleWidget}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                aria-label="Close chat"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Messages Container */}
@@ -215,21 +249,31 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
           </div>
 
           {/* Input Form */}
-          <div className="bg-white/5 backdrop-blur-md border-t border-white/10 p-4">
-            <form onSubmit={handleSubmit} className="flex items-center space-x-2">
+          <div className="bg-white/5 backdrop-blur-xl border-t border-white/10 p-4">
+            <form
+              onSubmit={handleSubmit}
+              className="flex items-end space-x-2"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            >
               <div className="flex-1 relative group">
-                {/* Text Input */}
-                <input
+                {/* Auto-expanding Textarea */}
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me to add, delete or edit tasks..."
-                  className="w-full glass-input rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/50 transition-all placeholder:text-white/30"
+                  rows={1}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    adjustTextareaHeight(e);
+                  }}
+                  placeholder="Ask me anything..."
+                  className="w-full glass-input rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/50 transition-all placeholder:text-white/20 resize-none min-h-[44px] max-h-[120px] scrollbar-thin overflow-y-auto"
                   disabled={loading}
                 />
-
-                {/* Subtle Voice Trigger overlay indicator or similar could go here */}
               </div>
 
               {/* Voice Input Button */}
@@ -264,12 +308,12 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
         </div>
       )}
 
-      {/* Custom Animation Styles */}
-      <style jsx>{`
+      {/* Custom Styles */}
+      <style jsx global>{`
         @keyframes pop-in {
           0% {
             opacity: 0;
-            transform: scale(0.8) translateY(20px);
+            transform: scale(0.9) translateY(20px);
           }
           100% {
             opacity: 1;
@@ -278,7 +322,30 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
         }
 
         .animate-pop-in {
-          animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+        }
+
+        /* Glass Scrollbar for Message Container */
+        .flex-1.overflow-y-auto::-webkit-scrollbar {
+          width: 5px;
+        }
+        .flex-1.overflow-y-auto::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .flex-1.overflow-y-auto:hover::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 10px;
         }
       `}</style>
     </div>
