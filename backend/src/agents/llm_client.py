@@ -66,31 +66,31 @@ class LLMClient:
 
                 return response.choices[0].message.content.strip()
 
-            except APITimeoutError:
+            except APITimeoutError as e:
                 logger.warning(f"OpenAI API timeout (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
                     logger.info(f"Retrying after {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
-                return "I'm having trouble connecting right now. Please try again in a moment."
+                raise e
 
-            except RateLimitError:
+            except RateLimitError as e:
                 logger.warning(f"OpenAI rate limit hit (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
                     logger.info(f"Retrying after {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
-                return "I'm experiencing high demand. Please try again in a minute."
+                raise e
 
             except AuthenticationError as e:
                 logger.error(f"OpenAI authentication error: {str(e)}")
-                return "I'm having trouble with my authentication. Please contact support."
+                raise e
 
             except APIConnectionError as e:
                 logger.error(f"OpenAI connection error: {str(e)}")
-                return "I'm having trouble connecting to my AI service. Please try again later."
+                raise e
 
             except APIError as e:
                 logger.error(f"OpenAI API error: {str(e)}")
@@ -102,11 +102,11 @@ class LLMClient:
                         logger.info(f"Retrying after {wait_time} seconds...")
                         time.sleep(wait_time)
                         continue
-                return "I encountered an error processing your request. Please try again."
+                raise e
 
             except Exception as e:
                 logger.exception(f"Unexpected error in LLM client: {str(e)}")
-                return "I encountered an unexpected error. Please try again."
+                raise e
 
     def generate_with_history(
         self,
@@ -145,31 +145,31 @@ class LLMClient:
 
                 return response.choices[0].message.content.strip()
 
-            except APITimeoutError:
+            except APITimeoutError as e:
                 logger.warning(f"OpenAI API timeout (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
                     logger.info(f"Retrying after {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
-                return "I'm having trouble connecting right now. Please try again in a moment."
+                raise e
 
-            except RateLimitError:
+            except RateLimitError as e:
                 logger.warning(f"OpenAI rate limit hit (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
                     logger.info(f"Retrying after {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
-                return "I'm experiencing high demand. Please try again in a minute."
+                raise e
 
             except AuthenticationError as e:
                 logger.error(f"OpenAI authentication error: {str(e)}")
-                return "I'm having trouble with my authentication. Please contact support."
+                raise e
 
             except APIConnectionError as e:
                 logger.error(f"OpenAI connection error: {str(e)}")
-                return "I'm having trouble connecting to my AI service. Please try again later."
+                raise e
 
             except APIError as e:
                 logger.error(f"OpenAI API error: {str(e)}")
@@ -181,11 +181,11 @@ class LLMClient:
                         logger.info(f"Retrying after {wait_time} seconds...")
                         time.sleep(wait_time)
                         continue
-                return "I encountered an error processing your request. Please try again."
+                raise e
 
             except Exception as e:
                 logger.exception(f"Unexpected error in LLM client: {str(e)}")
-                return "I encountered an unexpected error. Please try again."
+                raise e
 
 
 # Global LLM client instance
