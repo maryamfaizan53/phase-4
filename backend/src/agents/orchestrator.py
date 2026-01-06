@@ -177,12 +177,16 @@ class OrchestratorAgent:
                 )
 
             # Execute update_task tool
-            tool_input = UpdateTaskInput(
-                user_id=user_id,
-                task_id=task_id,
-                title=new_title,
-                description=new_description,
-            )
+            update_data = {
+                "user_id": user_id,
+                "task_id": task_id
+            }
+            if new_title is not None:
+                update_data["title"] = new_title
+            if new_description is not None:
+                update_data["description"] = new_description
+
+            tool_input = UpdateTaskInput(**update_data)
 
             # Step 8: Tool modifies database
             tool_result = update_task(db, tool_input)
