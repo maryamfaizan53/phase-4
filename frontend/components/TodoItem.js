@@ -34,16 +34,14 @@ export default function TodoItem({ task, onToggleComplete, onDelete, onEdit }) {
         />
         <div className="flex-1 min-w-0">
           <h3
-            className={`text-xl font-semibold break-words transition-all duration-300 ${
-              task.completed ? 'line-through text-white/40' : 'text-white'
-            }`}
+            className={`text-xl font-semibold break-words transition-all duration-300 ${task.completed ? 'line-through text-white/40' : 'text-white'
+              }`}
           >
             {task.title}
           </h3>
           {task.description && (
-            <p className={`mt-2 text-base transition-all duration-300 ${
-              task.completed ? 'text-white/30' : 'text-brand-100'
-            }`}>
+            <p className={`mt-2 text-base transition-all duration-300 ${task.completed ? 'text-white/30' : 'text-brand-100'
+              }`}>
               {task.description}
             </p>
           )}
@@ -51,7 +49,7 @@ export default function TodoItem({ task, onToggleComplete, onDelete, onEdit }) {
             <p className="text-xs text-brand-200/60 font-medium uppercase tracking-wider bg-white/5 px-2 py-1 rounded-lg">
               {formatDate(task.created_at)}
             </p>
-            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <button
                 onClick={handleEdit}
                 className="px-3 py-1.5 text-sm bg-white/10 hover:bg-brand-500/20 text-brand-200 hover:text-white rounded-lg transition-colors duration-200 flex items-center border border-white/5 hover:border-brand-500/30"
