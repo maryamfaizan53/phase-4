@@ -77,7 +77,7 @@ npm install -g @railway/cli
 
 # Login and link
 railway login
-railway link
+
 
 # Run migrations
 railway run alembic upgrade head

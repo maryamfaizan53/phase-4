@@ -25,7 +25,7 @@ frontend:
 
   # Environment variables
   env:
-    NEXT_PUBLIC_API_URL: "http://backend-service:8000"
+    NEXT_PUBLIC_API_URL: "http://127.0.0.1:63824"
     PORT: "3000"
 
   # Health checks
@@ -68,13 +68,13 @@ backend:
 
   # Service configuration
   service:
-    type: "ClusterIP"
+    type: "NodePort"
     port: 8000
     targetPort: 8000
 
   # Environment variables
   env:
-    DATABASE_URL: "postgresql://user:pass@host.docker.internal:5432/phase4_db"
+    DATABASE_URL: "postgresql://user:pass@postgres-service:5432/phase4_db"
     OPENAI_API_KEY: "sk-placeholder-replace-with-actual-key"
     OPENROUTER_API_KEY: "sk-or-placeholder-replace-with-actual-key"
     LLM_PROVIDER: "openrouter"
