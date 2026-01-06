@@ -183,11 +183,11 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
                     />
                   </svg>
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-brand-600"></div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-brand-600 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse"></div>
               </div>
               <div>
-                <h3 className="font-bold text-sm tracking-wide uppercase">AI Task Agent</h3>
-                <p className="text-[10px] text-brand-200 font-medium opacity-80">Online & Ready to Help</p>
+                <h3 className="font-bold text-sm tracking-wide uppercase text-white/90">Task Assistant</h3>
+                <p className="text-[10px] text-brand-300 font-semibold tracking-wider opacity-90 uppercase">System Online</p>
               </div>
             </div>
 
@@ -248,11 +248,13 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Form */}
-          <div className="bg-white/5 backdrop-blur-xl border-t border-white/10 p-4">
+          {/* Input Form Area */}
+          <div className="bg-black/20 backdrop-blur-2xl border-t border-white/5 p-4 sm:p-5 relative">
+            <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
             <form
               onSubmit={handleSubmit}
-              className="flex items-end space-x-2"
+              className="flex items-end space-x-3"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -260,7 +262,7 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
                 }
               }}
             >
-              <div className="flex-1 relative group">
+              <div className="flex-1 relative group bg-black/40 rounded-[20px] transition-all duration-300 focus-within:ring-2 focus-within:ring-brand-500/30 overflow-hidden shadow-inner">
                 {/* Auto-expanding Textarea */}
                 <textarea
                   ref={inputRef}
@@ -270,39 +272,43 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
                     setInput(e.target.value);
                     adjustTextareaHeight(e);
                   }}
-                  placeholder="Ask me anything..."
-                  className="w-full glass-input rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/50 transition-all placeholder:text-white/20 resize-none min-h-[44px] max-h-[120px] scrollbar-thin overflow-y-auto"
+                  placeholder="Message Task Assistant..."
+                  className="w-full bg-transparent border-none rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none transition-all placeholder:text-white/20 resize-none min-h-[48px] max-h-[140px] scrollbar-thin overflow-y-auto leading-relaxed"
                   disabled={loading}
+                  style={{ height: '48px' }}
                 />
               </div>
 
-              {/* Voice Input Button */}
-              <div className="flex-shrink-0">
-                <VoiceInputButton onTranscript={handleVoiceTranscript} />
-              </div>
+              {/* Action Buttons Section */}
+              <div className="flex items-center space-x-2 pb-0.5">
+                {/* Voice Input Button */}
+                <div className="flex-shrink-0">
+                  <VoiceInputButton onTranscript={handleVoiceTranscript} />
+                </div>
 
-              {/* Send Button */}
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-500/20 active:scale-95"
-                aria-label="Send message"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
+                {/* Send Button */}
+                <button
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-[16px] bg-gradient-to-br from-brand-400 to-brand-600 text-white disabled:opacity-20 disabled:grayscale disabled:cursor-not-allowed transition-all shadow-xl shadow-brand-500/20 active:scale-90 hover:brightness-110"
+                  aria-label="Send message"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5 drop-shadow-md"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                </button>
+              </div>
             </form>
           </div>
         </div>
