@@ -1,7 +1,7 @@
 """LLM client for OpenRouter/OpenAI integration"""
 import time
 import logging
-from openai import OpenAI, APIError, Timeout, RateLimitError, APIConnectionError, AuthenticationError
+from openai import OpenAI, APIError, APITimeoutError, RateLimitError, APIConnectionError, AuthenticationError
 from src.config import settings
 from typing import Optional, List, Dict
 
@@ -66,7 +66,7 @@ class LLMClient:
 
                 return response.choices[0].message.content.strip()
 
-            except Timeout:
+            except APITimeoutError:
                 logger.warning(f"OpenAI API timeout (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
@@ -145,7 +145,7 @@ class LLMClient:
 
                 return response.choices[0].message.content.strip()
 
-            except Timeout:
+            except APITimeoutError:
                 logger.warning(f"OpenAI API timeout (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
