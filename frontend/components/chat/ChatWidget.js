@@ -142,23 +142,31 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
           style={{ maxHeight: 'calc(100vh - 2rem)' }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white">
-            <div className="flex items-center space-x-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                />
-              </svg>
-              <h3 className="font-semibold">AI Assistant</h3>
+          <div className="flex items-center justify-between px-4 py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white shadow-md">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-6 h-6 text-brand-100"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-brand-600"></div>
+              </div>
+              <div>
+                <h3 className="font-bold text-sm tracking-wide uppercase">AI Task Agent</h3>
+                <p className="text-[10px] text-brand-200 font-medium opacity-80">Online & Ready to Help</p>
+              </div>
             </div>
 
             <button
@@ -207,27 +215,33 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
           </div>
 
           {/* Input Form */}
-          <div className="border-t border-white/10 p-4">
+          <div className="bg-white/5 backdrop-blur-md border-t border-white/10 p-4">
             <form onSubmit={handleSubmit} className="flex items-center space-x-2">
-              {/* Text Input */}
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 glass-input rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                disabled={loading}
-              />
+              <div className="flex-1 relative group">
+                {/* Text Input */}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask me to add, delete or edit tasks..."
+                  className="w-full glass-input rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/50 transition-all placeholder:text-white/30"
+                  disabled={loading}
+                />
+
+                {/* Subtle Voice Trigger overlay indicator or similar could go here */}
+              </div>
 
               {/* Voice Input Button */}
-              <VoiceInputButton onTranscript={handleVoiceTranscript} />
+              <div className="flex-shrink-0">
+                <VoiceInputButton onTranscript={handleVoiceTranscript} />
+              </div>
 
               {/* Send Button */}
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-500/20 active:scale-95"
                 aria-label="Send message"
               >
                 <svg
@@ -236,7 +250,7 @@ export default function ChatWidget({ userId, onTaskUpdate }) {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                 >
                   <path
                     strokeLinecap="round"

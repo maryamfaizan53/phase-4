@@ -305,15 +305,17 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
             return "all"
 
     def _extract_task_id(self, message: str) -> Optional[int]:
-        """Extract task ID from message (e.g., 'task #5', 'task 5')"""
+        """Extract task ID from message (e.g., 'task #5', 'task 5', 'remove 5')"""
         import re
 
-        # Look for patterns like "#5", "task 5", "task #5", "number 5"
+        # Look for patterns like "#5", "task 5", "task #5", "number 5", "id 5"
         patterns = [
-            r"#(\d+)",  # #5
             r"task\s+#?(\d+)",  # task 5, task #5
             r"number\s+(\d+)",  # number 5
             r"id\s+(\d+)",  # id 5
+            r"#(\d+)",  # #5
+            r"(?:delete|remove|edit|update|change|complete|finish|done)\s+(\d+)",  # action 5
+            r"\b(\d+)\b",  # any standalone number (fallback)
         ]
 
         for pattern in patterns:
@@ -410,41 +412,30 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
 
         result = {}
 
-        # Pattern 1: "change/update/modify task X to Y"
-        # Example: "change task 5 to buy milk"
-        pattern1 = r"(?:change|update|modify|edit|rename)\s+(?:task\s+)?[#]?(\d+)\s+(?:to|into)\s+(.+)"
-        match1 = re.search(pattern1, message_lower)
-        if match1:
-            result["task_id"] = int(match1.group(1))
-            result["title"] = message[match1.start(2) : match1.end(2)].strip()
-            return result
+        # List of flexible patterns
+        patterns = [
+            # "change/update task X to Y"
+            r"(?:change|update|modify|edit|rename)\s+(?:task\s+|id\s+)?[#]?(\d+)\s+(?:to|into|with)\s+(.+)",
+            # "change/update task X title (to) Y"
+            r"(?:change|update|modify|edit)\s+(?:task\s+|id\s+)?[#]?(\d+)\s+title\s+(?:to|into|with)?\s*(.+)",
+            # "change/update task X description (to) Y"
+            r"(?:change|update|modify|edit)\s+(?:task\s+|id\s+)?[#]?(\d+)\s+description\s+(?:to|into|with)?\s*(.+)",
+            # "rename task X (to) Y"
+            r"rename\s+(?:task\s+|id\s+)?[#]?(\d+)\s+(?:to|into)?\s*(.+)",
+            # "change task X from A to B" (not supported well by regex, but let's try a simple version)
+            r"change\s+(?:task\s+|id\s+)?[#]?(\d+)\s+(?:from\s+.+\s+)?(?:to|with)\s+(.+)"
+        ]
 
-        # Pattern 2: "change/update task X title to Y"
-        # Example: "update task #3 title to call dentist"
-        pattern2 = r"(?:change|update|modify|edit)\s+(?:task\s+)?[#]?(\d+)\s+title\s+(?:to|into)\s+(.+)"
-        match2 = re.search(pattern2, message_lower)
-        if match2:
-            result["task_id"] = int(match2.group(1))
-            result["title"] = message[match2.start(2) : match2.end(2)].strip()
-            return result
-
-        # Pattern 3: "change/update task X description to Y"
-        # Example: "change task 1 description to urgent project"
-        pattern3 = r"(?:change|update|modify|edit)\s+(?:task\s+)?[#]?(\d+)\s+description\s+(?:to|into)\s+(.+)"
-        match3 = re.search(pattern3, message_lower)
-        if match3:
-            result["task_id"] = int(match3.group(1))
-            result["description"] = message[match3.start(2) : match3.end(2)].strip()
-            return result
-
-        # Pattern 4: "rename task X to Y" (implies title change)
-        # Example: "rename task 2 to finish the report"
-        pattern4 = r"rename\s+(?:task\s+)?[#]?(\d+)\s+(?:to|into)\s+(.+)"
-        match4 = re.search(pattern4, message_lower)
-        if match4:
-            result["task_id"] = int(match4.group(1))
-            result["title"] = message[match4.start(2) : match4.end(2)].strip()
-            return result
+        for pattern in patterns:
+            match = re.search(pattern, message_lower)
+            if match:
+                result["task_id"] = int(match.group(1))
+                # Title or description?
+                if "description" in pattern:
+                    result["description"] = message[match.start(2) : match.end(2)].strip()
+                else:
+                    result["title"] = message[match.start(2) : match.end(2)].strip()
+                return result
 
         return result
     def _get_keywords_for_language(self, language: str) -> Dict[str, list]:
@@ -452,14 +443,14 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
         if language == "ur":
             # Urdu keywords (Romanized/transliterated for regex matching)
             return {
-                "add_task": ["yaad dilana", "task shamil", "kaam shamil", "task add", "mujhe yaad", "mujhe karna"],
-                "list_tasks": ["dikha", "dikhayen", "batao", "mere tasks", "kya pending", "kya kaam"],
-                "complete_task": ["mukammal", "mukammil", "poora kiya", "puri hui", "khatam"],
-                "update_task": ["badlao", "update", "change", "tabdeel"],
-                "delete_task": ["delete", "hata", "remove"],
-                "greeting": ["aslam", "hello", "hi", "kya haal"],
-                "gratitude": ["shukriya", "thanks", "thank you"],
-                "capabilities": ["kya kar sakte", "muddad", "features"],
+                "add_task": ["yaad dilana", "task shamil", "kaam shamil", "task add", "mujhe yaad", "mujhe karna", "add karo", "daalo"],
+                "list_tasks": ["dikha", "dikhayen", "batao", "mere tasks", "kya pending", "kya kaam", "list dikhao", "baqi"],
+                "complete_task": ["mukammal", "mukammil", "poora kiya", "puri hui", "khatam", "khatm", "khata", "done ho gaya", "mukamal", "khatham"],
+                "update_task": ["badlao", "update", "change", "tabdeel", "tabdil", "badlo"],
+                "delete_task": ["delete", "hata", "remove", "mitao", "nikalo"],
+                "greeting": ["aslam", "hello", "hi", "kya haal", "salam"],
+                "gratitude": ["shukriya", "thanks", "thank you", "meherbani"],
+                "capabilities": ["kya kar sakte", "muddad", "features", "help", "madad"],
             }
         else:
             # English keywords (default)
