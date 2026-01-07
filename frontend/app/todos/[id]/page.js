@@ -1,5 +1,5 @@
 /**
- * Modern Edit task page
+ * Elite Edit Task Page with Cinematic UI
  */
 'use client';
 
@@ -34,7 +34,6 @@ export default function EditTaskPage() {
       setTask(data);
     } catch (error) {
       console.error('Failed to fetch task:', error);
-      alert('Task not found');
       router.push('/todos');
     } finally {
       setLoading(false);
@@ -60,36 +59,48 @@ export default function EditTaskPage() {
 
   if (loading && !task) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black">
+        <div className="relative mb-8">
+          <div className="h-20 w-20 rounded-full border-4 border-brand-500/10 border-t-brand-500 animate-spin shadow-neon"></div>
+          <div className="absolute inset-0 h-20 w-20 rounded-full border-4 border-transparent border-b-purple-500 animate-spin" style={{ animationDuration: '1.5s' }}></div>
+        </div>
+        <p className="text-brand-400 font-bold uppercase tracking-[0.3em] text-sm animate-pulse">Syncing Objective...</p>
       </div>
     );
   }
 
-  if (!task) {
-    return null;
-  }
+  if (!task) return null;
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen">
+      <div className="min-h-screen relative overflow-hidden bg-black">
         <Navbar user={user} />
 
-        <main className="container mx-auto px-4 py-8 relative z-10">
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center mb-8 pt-8 animate-slide-up">
-              <button
-                onClick={handleCancel}
-                className="flex items-center text-brand-200 hover:text-white mr-4 transition-colors duration-200"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back
-              </button>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Edit Task</h1>
+        <main className="container mx-auto px-6 py-12 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 animate-reveal">
+              <div>
+                <button
+                  onClick={handleCancel}
+                  className="inline-flex items-center text-brand-400 hover:text-white mb-8 transition-all duration-500 group font-bold uppercase tracking-[0.2em] text-xs"
+                >
+                  <div className="w-10 h-10 rounded-xl glass-panel flex items-center justify-center mr-4 group-hover:bg-brand-500 group-hover:text-black transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                  </div>
+                  Back to Hub
+                </button>
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-brand-500/10 text-brand-400 font-bold text-xs uppercase tracking-[0.2em] mb-4 border border-brand-500/20">
+                  Objective Modification
+                </div>
+                <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none">
+                  Edit <span className="text-gradient-elite">Task</span>
+                </h1>
+              </div>
             </div>
-            <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+
+            <div className="animate-reveal [animation-delay:100ms] pb-32">
               <TodoForm
                 task={task}
                 onSubmit={handleSubmit}

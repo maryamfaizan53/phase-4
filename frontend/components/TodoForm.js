@@ -1,5 +1,5 @@
 /**
- * Modern Form for creating/editing todos
+ * Elite Todo Form with Cinematic UI
  */
 "use client";
 
@@ -25,95 +25,83 @@ export default function TodoForm({ task, onSubmit, onCancel, loading }) {
     setError("");
 
     if (!title.trim()) {
-      setError("Title is required");
+      setError("TITLE IS REQUIRED IN THE NEURAL BUFFER.");
       return;
     }
 
     try {
       await onSubmit({ title, description });
     } catch (err) {
-      setError(err.message || "Failed to save task");
+      setError(err.message || "SYNCHRONIZATION FAILURE.");
     }
   };
 
   return (
-    <Card className="animate-fade-in">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <Card className="animate-reveal border-white/10 shadow-premium p-10 md:p-14">
+      <form onSubmit={handleSubmit} className="space-y-10">
         <Input
-          label="Task Title"
+          label="Neural Objective (Title)"
           id="title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What needs to be done?"
+          placeholder="What shall we accomplish?"
           required
           disabled={loading}
           autoComplete="off"
           error={error}
+          className="bg-black/40 border-white/10 focus:border-brand-500/50 h-16 rounded-2xl text-lg font-medium"
         />
 
         <div>
           <label
             htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-bold text-gray-400 mb-3 ml-1 uppercase tracking-[0.2em] text-[10px]"
           >
-            Description
+            Tactical Details (Description)
           </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            autoComplete="off"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            placeholder="Add details about this task (optional)"
-            disabled={loading}
-          />
+          <div className="relative group">
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={5}
+              autoComplete="off"
+              className="w-full px-6 py-5 glass-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all duration-500 bg-black/40 backdrop-blur-xl border-white/10 hover:border-brand-500/30 text-white font-medium placeholder-gray-600"
+              placeholder="Provide further tactical context..."
+              disabled={loading}
+            />
+            <div className="absolute inset-0 rounded-2xl bg-brand-500/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+          </div>
         </div>
 
-        <div className="flex gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
           <Button
             type="button"
             variant="secondary"
             onClick={onCancel}
             disabled={loading}
+            size="lg"
+            className="sm:w-1/3 border-white/5 hover:bg-white/5"
           >
-            Cancel
+            Abort
           </Button>
           <Button
             type="submit"
-            variant={task ? "primary" : "primary"}
+            variant="primary"
             disabled={loading}
-            className="flex-1"
+            size="lg"
+            className="flex-1 shadow-neon hover:shadow-neon-hover py-5 text-xl"
           >
             {loading ? (
-              <span className="flex items-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Saving...
+              <span className="flex items-center gap-3">
+                <div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                Syncing...
               </span>
             ) : task ? (
-              "Update Task"
+              "Update Objective"
             ) : (
-              "Create Task"
+              "Initialize Objective"
             )}
           </Button>
         </div>

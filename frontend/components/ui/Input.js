@@ -1,54 +1,6 @@
-// /**
-//  * Modern Input Component
-//  */
-// import React from "react";
-
-// const Input = ({
-//   label,
-//   id,
-//   type = "text",
-//   placeholder,
-//   value,
-//   onChange,
-//   error,
-//   required = false,
-//   className = "",
-//   autoComplete = "",
-//   ...props
-// }) => {
-//   return (
-//     <div className="w-full">
-//       {label && (
-//         <label
-//           htmlFor={id}
-//           className="block text-sm font-medium text-gray-200 mb-1 ml-1"
-//         >
-//           {label} {required && <span className="text-pink-500">*</span>}
-//         </label>
-//       )}
-//       <input
-//         id={id}
-//         type={type}
-//         placeholder={placeholder}
-//         value={value}
-//         onChange={onChange}
-//         required={required}
-//         autoComplete={autoComplete}
-//         className={`w-full px-4 py-3 glass-input rounded-xl focus:outline-none transition-all duration-300 placeholder-gray-400 ${
-//           error ? "border-red-500 focus:border-red-500 box-shadow-none" : ""
-//         } ${className}`}
-//         {...props}
-//       />
-//       {error && (
-//         <p className="mt-1 text-sm text-red-400 animate-fade-in ml-1">
-//           {error}
-//         </p>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Input;
+/**
+ * Elite Input Component with Cinematic Styling
+ */
 import React from "react";
 
 const Input = ({
@@ -61,7 +13,7 @@ const Input = ({
   error,
   required = false,
   className = "",
-  autoComplete, // Remove default ""
+  autoComplete,
   ...props
 }) => {
   // Infer autoComplete if not provided
@@ -72,12 +24,11 @@ const Input = ({
         resolvedAutoComplete = "email";
         break;
       case "password":
-        resolvedAutoComplete = "current-password"; // Or "new-password" for signups
+        resolvedAutoComplete = "current-password";
         break;
       case "text":
-        resolvedAutoComplete = "on"; // General autofill
+        resolvedAutoComplete = "on";
         break;
-      // Add more cases as needed (e.g., "tel" -> "tel", "url" -> "url")
       default:
         resolvedAutoComplete = "on";
     }
@@ -88,26 +39,28 @@ const Input = ({
       {label && (
         <label
           htmlFor={id}
-          className="block text-sm font-medium text-gray-200 mb-1 ml-1"
+          className="block text-sm font-bold text-gray-400 mb-2 ml-1 uppercase tracking-[0.15em] text-[10px]"
         >
-          {label} {required && <span className="text-pink-500">*</span>}
+          {label} {required && <span className="text-brand-500">*</span>}
         </label>
       )}
-      <input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required={required}
-        autoComplete={resolvedAutoComplete} // Use the resolved value
-        className={`w-full px-4 py-3 glass-input rounded-xl focus:outline-none transition-all duration-300 placeholder-gray-400 ${
-          error ? "border-red-500 focus:border-red-500 box-shadow-none" : ""
-        } ${className}`}
-        {...props}
-      />
+      <div className="relative group">
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          required={required}
+          autoComplete={resolvedAutoComplete}
+          className={`w-full px-5 py-4 glass-input rounded-2xl focus:outline-none transition-all duration-500 placeholder-gray-600 bg-black/40 backdrop-blur-xl border-white/10 hover:border-brand-500/30 text-white font-medium ${error ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20" : "focus:ring-2 focus:ring-brand-500/30"
+            } ${className}`}
+          {...props}
+        />
+        <div className="absolute inset-0 rounded-2xl bg-brand-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+      </div>
       {error && (
-        <p className="mt-1 text-sm text-red-400 animate-fade-in ml-1">
+        <p className="mt-2 text-[10px] text-red-500 font-black uppercase tracking-widest animate-fade-in ml-1">
           {error}
         </p>
       )}

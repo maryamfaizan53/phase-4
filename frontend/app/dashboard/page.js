@@ -21,150 +21,108 @@ export default function DashboardPage() {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Initial data fetch
   useEffect(() => {
     if (user) {
       fetchTasks();
     }
   }, [user]);
 
-  // Fetch tasks when user is set
-  useEffect(() => {
-    if (user) {
-      fetchTasks();
-    }
-  }, [user]);
-
-  /**
-   * Fetch tasks from API
-   * Reusable function for initial load and refresh operations
-   */
   const fetchTasks = async () => {
     if (!user) return;
 
     try {
-      // Use refreshing state if this is not the initial load
       if (tasks.length > 0) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
-
       setError(null);
-
       const data = await tasksAPI.list(user.id);
       setTasks(data || []);
     } catch (err) {
       console.error('Error fetching tasks:', err);
-      setError(err.message || 'Failed to load tasks. Please try again.');
+      setError(err.message || 'Neural communication failure. Please re-synchronize.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  /**
-   * Toggle task completion status
-   */
   const handleToggleComplete = async (taskId, completed) => {
     try {
       await tasksAPI.toggleComplete(user.id, taskId, completed);
-      await fetchTasks(); // Refresh tasks after update
+      await fetchTasks();
     } catch (err) {
       console.error('Error toggling task:', err);
-      setError(err.message || 'Failed to update task. Please try again.');
+      setError(err.message || 'Task state mutation failed.');
     }
   };
 
-  /**
-   * Delete a task
-   */
   const handleDelete = async (taskId) => {
     try {
       await tasksAPI.delete(user.id, taskId);
-      await fetchTasks(); // Refresh tasks after deletion
+      await fetchTasks();
     } catch (err) {
       console.error('Error deleting task:', err);
-      setError(err.message || 'Failed to delete task. Please try again.');
+      setError(err.message || 'Permanent erasure failed.');
     }
   };
 
-  /**
-   * Edit a task (navigate to edit page)
-   */
   const handleEdit = (taskId) => {
     router.push(`/todos/${taskId}`);
   };
 
-
   return (
     <ProtectedRoute>
-      <div className="min-h-screen">
-        {/* Skip to main content link for keyboard navigation */}
-        <a href="#main-content" className="skip-to-main">
-          Skip to main content
-        </a>
-
+      <div className="min-h-screen relative overflow-hidden">
         <Navbar user={user} />
 
-        <main id="main-content" className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-          {/* Page Header */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-200">
-              Dashboard
+        <main id="main-content" className="container mx-auto px-6 py-12 relative z-10 animate-reveal">
+          {/* Elite Page Header */}
+          <div className="mb-16">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-brand-500/10 text-brand-400 font-bold text-xs uppercase tracking-[0.2em] mb-4 border border-brand-500/20">
+              Insight Hub
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-tight">
+              Command <span className="text-gradient-elite">Center</span>
             </h1>
-            <p className="mt-2 text-sm sm:text-base text-white/60">
-              Your productivity insights at a glance
+            <p className="mt-4 text-xl text-gray-400 font-medium">
+              Monitor your neural output and productivity trajectory.
             </p>
           </div>
 
-          {/* Error Message with Retry */}
           {error && (
-            <div className="mb-6 glass-panel rounded-xl p-4 border border-red-500/50 bg-red-500/10">
+            <div className="mb-12 glass-panel rounded-3xl p-6 border-red-500/30 bg-red-500/5 animate-pop-in">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-red-400 flex-shrink-0"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-red-400">{error}</span>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-red-400 font-bold tracking-tight">{error}</span>
                 </div>
                 <button
                   onClick={fetchTasks}
-                  className="ml-4 px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded border border-red-500/50 transition-all text-sm font-medium whitespace-nowrap"
+                  className="px-6 py-2 bg-red-500 text-white rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-lg"
                 >
-                  Retry
+                  Request Re-Sync
                 </button>
               </div>
             </div>
           )}
 
-          {/* Dashboard Layout Structure */}
-          <div className="space-y-6 sm:space-y-8 pb-24 sm:pb-8">
-            {/* KPI Cards Section */}
-            <section id="kpi-section">
-              <ErrorBoundary fallbackMessage="Failed to load KPI metrics. Please refresh the page.">
-                {loading ? (
-                  <KPISkeleton />
-                ) : (
-                  <DashboardKPIs tasks={tasks} />
-                )}
+          <div className="space-y-12 pb-32">
+            <section id="kpi-section" className="animate-reveal [animation-delay:100ms]">
+              <ErrorBoundary fallbackMessage="KPI Neural Link Interrupted.">
+                {loading ? <KPISkeleton /> : <DashboardKPIs tasks={tasks} />}
               </ErrorBoundary>
             </section>
 
-            {/* Charts Section */}
-            <section id="charts-section">
-              <ErrorBoundary fallbackMessage="Failed to load charts. Please refresh the page.">
+            <section id="charts-section" className="animate-reveal [animation-delay:200ms]">
+              <ErrorBoundary fallbackMessage="Visualization Matrix Error.">
                 {loading ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <ChartSkeleton title />
                     <ChartSkeleton title />
                   </div>
@@ -174,9 +132,8 @@ export default function DashboardPage() {
               </ErrorBoundary>
             </section>
 
-            {/* Task Table Section */}
-            <section id="table-section">
-              <ErrorBoundary fallbackMessage="Failed to load task table. Please refresh the page.">
+            <section id="table-section" className="animate-reveal [animation-delay:300ms]">
+              <ErrorBoundary fallbackMessage="Task Buffer Overflow.">
                 {loading ? (
                   <TableSkeleton />
                 ) : (
@@ -189,11 +146,9 @@ export default function DashboardPage() {
                 )}
               </ErrorBoundary>
             </section>
-
           </div>
         </main>
 
-        {/* Chat Widget - Fixed position, always visible */}
         {user && (
           <ChatWidget userId={user.id} onTaskUpdate={fetchTasks} />
         )}
