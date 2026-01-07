@@ -30,15 +30,20 @@ module.exports = {
         sans: ['Outfit', 'Inter', 'sans-serif'],
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-        'glass-hover': '0 8px 32px 0 rgba(31, 38, 135, 0.50)',
-        'neon': '0 0 10px rgba(20, 184, 166, 0.5), 0 0 20px rgba(20, 184, 166, 0.3)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+        'glass-hover': '0 12px 40px 0 rgba(0, 0, 0, 0.50)',
+        'neon': '0 0 15px rgba(45, 212, 191, 0.4), 0 0 30px rgba(45, 212, 191, 0.2)',
+        'neon-hover': '0 0 20px rgba(45, 212, 191, 0.6), 0 0 40px rgba(45, 212, 191, 0.3)',
+        'premium': '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
-        'slide-up': 'slideUp 0.5s ease-out',
-        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        'float-slow': 'float 10s ease-in-out infinite',
+        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+        'pop-in': 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2)',
         'gradient-x': 'gradientX 15s ease infinite',
+        'shimmer': 'shimmer 2.5s infinite',
+        'reveal': 'reveal 1.2s cubic-bezier(0.21, 1.02, 0.73, 1) forwards',
       },
       keyframes: {
         float: {
@@ -46,12 +51,16 @@ module.exports = {
           '50%': { transform: 'translateY(-20px)' },
         },
         slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '0%': { transform: 'translateY(30px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         popIn: {
-          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        reveal: {
+          '0%': { opacity: '0', transform: 'translateY(20px)', filter: 'blur(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
         },
         gradientX: {
           '0%, 100%': {
@@ -66,6 +75,7 @@ module.exports = {
       },
       backdropBlur: {
         xs: '2px',
+        '2xl': '40px',
       }
     },
   },
