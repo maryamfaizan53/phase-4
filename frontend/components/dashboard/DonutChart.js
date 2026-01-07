@@ -21,7 +21,7 @@ export default function DonutChart({ tasks = [] }) {
   };
 
   // Custom tooltip config
-  const tooltipConfig = getChartTooltipConfig();
+  const tooltipConfig = useMemo(() => getChartTooltipConfig(), []);
 
   // Handle empty data
   if (!data || data.length === 0) {

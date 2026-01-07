@@ -22,7 +22,7 @@ export default function BarChart({ tasks = [] }) {
   const data = useMemo(() => getStatusBreakdown(tasks), [tasks]);
 
   // Custom tooltip config
-  const tooltipConfig = getChartTooltipConfig();
+  const tooltipConfig = useMemo(() => getChartTooltipConfig(), []);
 
   // Handle empty data
   if (!data || data.length === 0) {

@@ -23,7 +23,7 @@ export default function LineChart({ tasks = [] }) {
   const data = useMemo(() => getTimeSeriesData(tasks, 7), [tasks]);
 
   // Custom tooltip config
-  const tooltipConfig = getChartTooltipConfig();
+  const tooltipConfig = useMemo(() => getChartTooltipConfig(), []);
 
   // Handle empty data
   if (!data || data.length === 0) {

@@ -9,6 +9,7 @@ from src.mcp.tools.list_tasks import list_tasks, ListTasksInput
 from src.mcp.tools.complete_task import complete_task, CompleteTaskInput
 from src.mcp.tools.update_task import update_task, UpdateTaskInput
 from src.mcp.tools.delete_task import delete_task, DeleteTaskInput
+from src.mcp.tools.delete_all_tasks import delete_all_tasks
 from sqlmodel import select
 from src.models.task import Task
 
@@ -209,6 +210,13 @@ class OrchestratorAgent:
 
             # Step 8: Tool modifies database
             tool_result = delete_task(db, tool_input)
+
+            # Step 9: Response Synthesizer formats deletion confirmation
+            return self.response_synthesizer.synthesize_response(tool_result)
+
+        elif intent == "delete_all_tasks":
+            # Execute delete_all_tasks tool
+            tool_result = delete_all_tasks(db, user_id)
 
             # Step 9: Response Synthesizer formats deletion confirmation
             return self.response_synthesizer.synthesize_response(tool_result)

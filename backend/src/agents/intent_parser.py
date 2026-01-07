@@ -154,6 +154,14 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
 
         # Check for delete_task intent (highest priority for task operations - destructive action)
         if has_delete_keyword:
+            # Check for "delete all" intent
+            if "all" in message_lower:
+                return {
+                    "intent": "delete_all_tasks",
+                    "confidence": 0.95,
+                    "parameters": {},
+                }
+
             # Extract task ID
             task_id = self._extract_task_id(message_lower)
 
@@ -400,8 +408,17 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
             if message_lower.startswith(prefix):
                 # Preserve original case for title
                 return message[len(prefix) :].strip()
-
-        # If no prefix matched, return the whole message as title
+        
+        # If no specific prefixes matched, try to extract title after add/new keywords
+        if any(keyword in message_lower for keyword in ["add", "new"]):
+            for keyword in ["add", "new"]:
+                idx = message_lower.find(keyword)
+                if idx != -1:
+                    remaining_message = message[idx + len(keyword):].strip()
+                    if remaining_message:
+                        return remaining_message
+        
+        # If no specific patterns matched, return the whole message as title
         return message
 
     def _extract_update_parameters(
@@ -456,6 +473,8 @@ If the intent is unclear or ambiguous, set confidence < 0.7 and intent to "uncle
             # English keywords (default)
             return {
                 "add_task": [
+                    "add",
+                    "new",
                     "remind",
                     "add task",
                     "create task",
