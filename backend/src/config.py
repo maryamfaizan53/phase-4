@@ -37,10 +37,14 @@ class Settings(BaseSettings):
     ENV: str = "development"
     DEBUG: bool = True
 
+    # Frontend-specific (optional, to avoid validation errors if present in .env)
+    NEXT_PUBLIC_API_URL: Optional[str] = None
+
     class Config:
         env_file = str(ENV_FILE)
         env_file_encoding = 'utf-8'
         case_sensitive = True
+        # extra = "ignore"  # Uncomment if you prefer to ignore unknown env vars instead of adding them explicitly
 
 
 # Global settings instance
