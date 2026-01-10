@@ -1,4 +1,4 @@
-# CLAUDE.md
+uvicorn src.api.main:app --reload --port 8000# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -83,7 +83,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt  # NOTE: requirements.txt doesn't exist yet - dependencies managed manually
 
 # Run development server
-uvicorn src.api.main:app --reload --port 8000
+
 
 # Run database migrations
 alembic upgrade head

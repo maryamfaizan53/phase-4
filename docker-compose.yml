@@ -12,5 +12,40 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  backend:
+    image: todo-backend:latest
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/phase4
+      OPENAI_API_KEY: dummy
+      OPENROUTER_API_KEY: dummy
+      LLM_PROVIDER: openrouter
+      LLM_MODEL: google/gemini-2.0-flash-exp:free
+      LLM_BASE_URL: https://openrouter.ai/api/v1
+      JWT_SECRET_KEY: 017d87e04636f5927369c66721a80fb136036f70e6c8989fd5081135b3a169d8
+      JWT_ALGORITHM: HS256
+      AUTH_AUTO_CREATE_USERS: "false"
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      RATE_LIMIT: 100/minute
+      ALLOWED_ORIGINS: http://localhost:3000
+      ENV: development
+      DEBUG: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  frontend:
+    image: todo-frontend:latest
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      BETTER_AUTH_SECRET: 017d87e04636f5927369c66721a80fb136036f70e6c8989fd5081135b3a169d8
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
