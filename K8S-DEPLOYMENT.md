@@ -53,7 +53,8 @@ cd phase-4
 #### Frontend Image
 ```bash
 cd frontend
-docker build -t todo-frontend:latest .
+
+
 ```
 
 #### Backend Image
