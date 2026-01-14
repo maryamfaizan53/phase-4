@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "ReminderEvent",
+  "namespace": "com.todo.events",
+  "fields": [
+    {
+      "name": "taskId",
+      "type": "long"
+    },
+    {
+      "name": "title",
+      "type": "string"
+    },
+    {
+      "name": "dueAt",
+      "type": "string"
+    },
+    {
+      "name": "remindAt",
+      "type": "string"
+    },
+    {
+      "name": "userId",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: service-invocation
+  namespace: default
+spec:
+  type: service.invocation
+  version: v1
+  metadata: []

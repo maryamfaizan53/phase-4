@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-backend-dapr
+  labels:
+    app: todo-backend-dapr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-backend-dapr
+  template:
+    metadata:
+      labels:
+        app: todo-backend-dapr
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "todo-app"
+        dapr.io/app-port: "8000"
+        dapr.io/config: "dapr-config"
+        dapr.io/log-level: "info"
+        dapr.io/app-protocol: "http"
+        dapr.io/app-max-concurrency: "1"
+        dapr.io/enable-api-logging: "true"
+    spec:
+      containers:
+      - name: todo-backend
+        image: todo-app:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: connectionString
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jwt-secret
+              key: secretKey
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5

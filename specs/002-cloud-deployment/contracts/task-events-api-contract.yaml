@@ -1,0 +1,152 @@
+# API Contract: Cloud Deployment Event Streaming
+
+## Overview
+This document defines the API contracts for the event streaming functionality in the cloud deployment feature.
+
+## Event Schemas
+
+### Task Event Schema
+```json
+{
+  "type": "object",
+  "required": ["event_type", "task_id", "task_data", "user_id", "timestamp"],
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "enum": ["created", "updated", "completed", "deleted"]
+    },
+    "task_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "task_data": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "integer"},
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "completed": {"type": "boolean"},
+        "due_date": {"type": "string", "format": "date-time"},
+        "priority": {"type": "string", "enum": ["low", "medium", "high"]},
+        "tags": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
+```
+
+### Reminder Event Schema
+```json
+{
+  "type": "object",
+  "required": ["task_id", "title", "due_at", "remind_at", "user_id"],
+  "properties": {
+    "task_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "due_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "remind_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "user_id": {
+      "type": "string"
+    }
+  }
+}
+```
+
+## Kafka Topic Specifications
+
+### task-events Topic
+- **Purpose**: All task CRUD operations
+- **Partitioning**: By user_id for consistent routing
+- **Retention**: 7 days
+- **Replication Factor**: 3
+- **Message Format**: Task Event Schema
+
+### reminders Topic
+- **Purpose**: Scheduled reminder triggers
+- **Partitioning**: By user_id for consistent routing
+- **Retention**: 1 day (short-lived notifications)
+- **Replication Factor**: 3
+- **Message Format**: Reminder Event Schema
+
+### task-updates Topic
+- **Purpose**: Real-time client sync
+- **Partitioning**: By user_id for consistent routing
+- **Retention**: 1 hour (ephemeral updates)
+- **Replication Factor**: 3
+- **Message Format**: Task Event Schema
+
+## Dapr Component Specifications
+
+### Kafka Pub/Sub Component
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "kafka:9092"
+    - name: consumerGroup
+      value: "todo-service"
+    - name: authType
+      value: "none"
+```
+
+### PostgreSQL State Store Component
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    - name: connectionString
+      value: "postgresql://user:password@postgres:5432/todo"
+    - name: actorStateStore
+      value: "true"
+```
+
+## Service Endpoints
+
+### Task Service Endpoints
+- **POST /api/tasks**: Create new task (publishes to task-events)
+- **PUT /api/tasks/{id}**: Update task (publishes to task-events)
+- **DELETE /api/tasks/{id}**: Delete task (publishes to task-events)
+- **PATCH /api/tasks/{id}/complete**: Mark task complete (publishes to task-events)
+
+### Event Processing Endpoints
+- **POST /api/events/process**: Generic event processor
+- **POST /api/reminders/schedule**: Schedule reminder (publishes to reminders)
+- **POST /api/recurring/create**: Create recurring task (publishes to task-events)
+
+## Error Handling
+- **4xx Errors**: Client errors, invalid event schemas
+- **5xx Errors**: Server errors, Kafka connectivity issues
+- **Retry Policy**: Exponential backoff for transient failures
+- **Dead Letter Queue**: Failed events stored for manual processing

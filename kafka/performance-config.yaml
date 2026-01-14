@@ -1,0 +1,150 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: todo-service-consumer
+  namespace: kafka
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # Allow consume from task-events topic
+      - resource:
+          type: topic
+          name: task-events
+        operations: ["Read", "Describe"]
+      # Allow consume from reminders topic
+      - resource:
+          type: topic
+          name: reminders
+        operations: ["Read", "Describe"]
+      # Allow consume from task-updates topic
+      - resource:
+          type: topic
+          name: task-updates
+        operations: ["Read", "Describe"]
+      # Allow modifying consumer group offsets
+      - resource:
+          type: group
+          name: todo-service-group
+        operations: ["Read"]
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: todo-service-producer
+  namespace: kafka
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # Allow produce to task-events topic
+      - resource:
+          type: topic
+          name: task-events
+        operations: ["Write", "Describe", "Create"]
+      # Allow produce to reminders topic
+      - resource:
+          type: topic
+          name: reminders
+        operations: ["Write", "Describe", "Create"]
+      # Allow produce to task-updates topic
+      - resource:
+          type: topic
+          name: task-updates
+        operations: ["Write", "Describe", "Create"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-performance-config
+  namespace: default
+data:
+  # Kafka consumer configuration for optimal performance
+  consumer.properties: |
+    # Consumer group configuration
+    group.id=todo-service-group
+
+    # Performance settings
+    max.poll.records=100
+    max.poll.interval.ms=300000
+    session.timeout.ms=10000
+    heartbeat.interval.ms=3000
+
+    # Fetch settings for better throughput
+    fetch.min.bytes=102400
+    fetch.max.bytes=52428800
+    fetch.max.wait.ms=500
+
+    # Serialization
+    key.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+    value.deserializer=io.confluent.kafka.serializers.KafkaAvroDeserializer
+
+    # Security
+    security.protocol=SASL_PLAINTEXT
+    sasl.mechanism=SCRAM-SHA-512
+
+  # Kafka producer configuration for optimal performance
+  producer.properties: |
+    # Performance settings
+    batch.size=16384
+    linger.ms=5
+    buffer.memory=33554432
+    compression.type=lz4
+
+    # Reliability settings
+    acks=all
+    retries=2147483647
+    max.in.flight.requests.per.connection=5
+    idempotence=true
+
+    # Serialization
+    key.serializer=org.apache.kafka.common.serialization.StringSerializer
+    value.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
+
+    # Security
+    security.protocol=SASL_PLAINTEXT
+    sasl.mechanism=SCRAM-SHA-512
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub-perf
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: "taskflow-kafka-kafka-brokers.kafka.svc:9092"
+  - name: consumerGroup
+    value: "todo-service-group"
+  - name: authType
+    value: "none"
+  - name: maxMessageBytes
+    value: 2097152
+  - name: timeout
+    value: 30s
+  # Consumer-specific performance settings
+  - name: consumeRetryInterval
+    value: "100ms"
+  - name: disableConsumerHeartbeat
+    value: "false"
+  - name: consumerFetchMinBytes
+    value: "102400"
+  - name: consumerFetchDefaultBytes
+    value: "52428800"
+  - name: consumerFetchMaxWait
+    value: "500ms"
+  - name: consumerMaxProcessingTime
+    value: "100ms"
+  # Producer-specific performance settings
+  - name: publishRetryInterval
+    value: "100ms"
+  - name: disableProducerIdempotent
+    value: "false"
+  - name: disableProducerTransactional
+    value: "false"

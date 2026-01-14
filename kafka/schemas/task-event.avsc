@@ -1,0 +1,72 @@
+{
+  "type": "record",
+  "name": "TaskEvent",
+  "namespace": "com.todo.events",
+  "fields": [
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "EventType",
+        "symbols": ["CREATED", "UPDATED", "COMPLETED", "DELETED"]
+      }
+    },
+    {
+      "name": "taskId",
+      "type": "long"
+    },
+    {
+      "name": "taskData",
+      "type": {
+        "type": "record",
+        "name": "TaskData",
+        "fields": [
+          {
+            "name": "id",
+            "type": "long"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "completed",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "dueDate",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "priority",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "tags",
+            "type": {
+              "type": "array",
+              "items": "string"
+            },
+            "default": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "userId",
+      "type": "string"
+    },
+    {
+      "name": "timestamp",
+      "type": "string"
+    }
+  ]
+}

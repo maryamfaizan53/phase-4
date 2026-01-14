@@ -1,0 +1,71 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: default
+spec:
+  tracing:
+    samplingRate: "1"
+    zipkin:
+      endpointAddress: "http://jaeger-collector:9411/api/v2/spans"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "jaeger"
+        dapr.io/app-port: "14268"
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:latest
+        ports:
+        - containerPort: 14268
+          protocol: TCP
+        - containerPort: 16686
+          protocol: TCP
+        env:
+        - name: COLLECTOR_ZIPKIN_HOST_PORT
+          value: ":9411"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: default
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - protocol: TCP
+    - port: 14268
+      targetPort: 14268
+      name: grpc
+    - port: 9411
+      targetPort: 9411
+      name: zipkin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  namespace: default
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - protocol: TCP
+      port: 16686
+      targetPort: 16686
+      name: query

@@ -1,261 +1,172 @@
-<!--
-SYNC IMPACT REPORT
-Version Change: 1.0.0 → 1.1.0
-Date: 2025-12-25
-Change Type: MINOR (new section added)
+<!-- SYNC IMPACT REPORT
+Version Change: 1.1.0 → 2.0.0
+Date: 2026-01-13
+Change Type: MAJOR (core principles redefined for cloud deployment)
 
 Modified Sections:
-- Added: "Agent Model" section with 4 specialized agents + orchestrator
+- Core Principles completely redefined for Phase V Advanced Cloud Deployment
 
 Principles Modified:
-- None (all 6 core principles unchanged)
+- All 6 core principles replaced with cloud deployment principles
 
 Added Sections:
-- Agent Model (defines multi-agent architecture)
-  - AGENT 1: UI/UX Agent
-  - AGENT 2: Frontend Integration Agent
-  - AGENT 3: Chat Experience Agent
-  - AGENT 4: QA & Validation Agent
-  - ORCHESTRATOR: Claude Code
+- Cloud-Native Architecture
+- Event-Driven Systems
+- Dapr Integration Standards
+- Kafka/Streaming Architecture
+- Kubernetes Deployment Strategy
+- Monitoring and Observability
 
 Removed Sections:
-- None
+- Previous UI/UX and frontend-focused principles
 
 Templates Requiring Updates:
-- ✅ No template updates required (architecture documentation only)
+- ⚠ specs/dashboard-enhancement/spec.md needs cloud deployment updates
+- ⚠ specs/dashboard-enhancement/plan.md needs cloud deployment updates
+- ⚠ specs/dashboard-enhancement/tasks.md needs cloud deployment updates
 
 Follow-up TODOs:
 - None
 
-Rationale for MINOR version bump:
-New "Agent Model" section materially expands governance by defining
-specialized agent responsibilities and scope boundaries. This is an
-additive change that doesn't modify existing principles but adds
-significant new guidance for multi-agent workflows.
+Rationale for MAJOR version bump:
+Complete redefinition of project principles to focus on cloud deployment,
+microservices architecture, event-driven systems, and distributed computing.
+Previous frontend-focused principles no longer applicable to Phase V scope.
 -->
 
-# Phase-4 AI-Powered Todo Dashboard Constitution
+# Phase V: Advanced Cloud Deployment Constitution
 
 ## Core Principles
 
-### I. Preservation Over Rewriting
-**Immutability Rule:** Existing frontend and backend business logic MUST NOT be rewritten or simplified.
-- Enhancement Only: Changes LIMITED to UI/UX improvements, dashboard layout, visual components, and chat integration
-- No Functionality Removal: Business features must remain intact; only additive changes allowed
-- Smallest Viable Diff: Make minimal changes necessary to achieve the goal
+### I. Cloud-Native Architecture (NON-NEGOTIABLE)
+**Kubernetes-First Design:** All services must be designed for containerized deployment on K8s platforms (Minikube/AKS/GKE).
+- Microservices Architecture: Services must be independently deployable and scalable
+- Twelve-Factor App Methodology: Follow cloud-native best practices for configuration, statelessness, and port binding
+- Immutable Infrastructure: Deployments use immutable containers with versioned images
+- Platform Agnostic: Code must work on any K8s platform (local Minikube, AKS, GKE, OKE)
 
-### II. Spec-Driven Development (SDD)
-**Mandatory Flow:** Specification → Plan → Tasks → Implementation
-- Documentation First: All features must be specified before implementation
-- Traceability: Every change must be traceable to a spec document
-- PHR Requirement: Prompt History Records created for every significant interaction
-- ADR Suggestions: Propose Architectural Decision Records for significant decisions (user consent required)
+### II. Event-Driven Systems (MANDATORY)
+**Asynchronous Processing:** All inter-service communication must use event-driven patterns.
+- Kafka Integration: All task operations must publish events to Kafka topics
+- Loose Coupling: Services must not directly call each other (except via Dapr)
+- At-Least-Once Delivery: Event processing must guarantee delivery with retry mechanisms
+- Event Schema Standards: All events follow standardized schemas (task-events, reminders, task-updates)
 
-### III. Human-in-the-Loop (NON-NEGOTIABLE)
-**User as Tool:** Invoke user for clarification when requirements are ambiguous
-- No Assumptions: Never invent APIs, data structures, or contracts without confirmation
-- Targeted Clarification: Ask 2-3 specific questions when uncertain
-- Decision Transparency: Present options with tradeoffs for architectural decisions
-- Completion Checkpoints: Summarize what was done and confirm next steps
+### III. Dapr Integration Standards (REQUIRED)
+**Distributed Application Runtime:** All infrastructure interactions must use Dapr building blocks.
+- Pub/Sub Abstraction: Kafka access via Dapr pubsub components (no direct Kafka clients)
+- State Management: Conversation state via Dapr state management (no direct DB calls for state)
+- Service Invocation: Inter-service communication via Dapr service invocation
+- Secrets Management: All sensitive data via Dapr secret stores
+- Component Config: All Dapr components defined in YAML manifests
 
-### IV. Type Safety & Code Quality
-**Type Safety Enforced:** TypeScript strict mode and Python type hints required
-- Frontend: PascalCase for components, camelCase for functions, explicit prop interfaces
-- Backend: PEP 8 compliance, type hints for all functions, docstrings for public APIs
-- No `any` Types: Use proper types or `unknown` with type guards
-- Testing Required: 70% minimum coverage for critical paths
+### IV. Kafka/Streaming Architecture (MANDATORY)
+**Stream Processing Foundation:** All business events must flow through Kafka for auditability and processing.
+- Topic Standards: Use predefined topics (task-events, reminders, task-updates) with consistent schemas
+- Consumer Groups: Proper consumer group management for scalability
+- Partitioning Strategy: Events partitioned by user_id for consistent routing
+- Event Sourcing: All state changes captured as immutable events in Kafka
 
-### V. Security & Production Readiness
-**Security First:** No hardcoded secrets; use environment variables
-- AuthN/AuthZ: JWT-based authentication with Better Auth
-- Input Validation: Validate all user inputs at API boundaries
-- Error Handling: Explicit error paths and graceful degradation
-- Performance Budgets: p95 < 500ms for CRUD operations, < 3s initial load
+### V. Kubernetes Deployment Strategy (NON-NEGOTIABLE)
+**Production-Ready Deployment:** All deployments must follow production standards.
+- Helm Charts: Use Helm for deployment packaging and configuration
+- Resource Limits: All containers specify CPU/memory requests and limits
+- Health Checks: Liveness and readiness probes for all services
+- Rolling Updates: Zero-downtime deployments with proper rollout strategies
+- Environment Parity: Local (Minikube) mirrors production (AKS/GKE) configuration
 
-### VI. Accessibility & UX
-**WCAG 2.1 Level AA Compliance:** Minimum accessibility standard
-- Keyboard Navigation: All interactions accessible via keyboard
-- Screen Reader Support: Proper ARIA labels and roles
-- Color Contrast: Minimum 4.5:1 for normal text
-- Mobile First: Design for mobile, enhance for desktop
-- Professional SaaS Look: Clean, modern card-based layouts
+### VI. Security & Observability (MANDATORY)
+**Production Security & Monitoring:** All services must meet enterprise standards.
+- Service Mesh: Dapr provides mTLS and secure service-to-service communication
+- API Security: JWT authentication with proper key rotation
+- Audit Logging: All events logged for compliance and debugging
+- Distributed Tracing: Requests traced across all services
+- Metrics Collection: Prometheus/OpenTelemetry metrics for performance monitoring
 
 ## Technology Stack
 
-### Frontend
-- **Framework:** Next.js 14+ with TypeScript (App Router)
-- **Styling:** Tailwind CSS + shadcn/ui components
-- **Authentication:** Better Auth with JWT tokens
-- **State Management:** React Context API or Zustand
-- **Language Support:** English (primary), Urdu (chatbot)
-- **Voice Input:** Web Speech API
+### Cloud Infrastructure
+- **Orchestration:** Kubernetes (Minikube local, AKS/GKE/OKE cloud)
+- **Service Mesh:** Dapr for distributed application runtime
+- **Message Broker:** Kafka (Strimzi on K8s or Redpanda Cloud)
+- **Database:** PostgreSQL (NeonDB external, state managed via Dapr)
+- **Monitoring:** Prometheus + Grafana, distributed tracing with Jaeger
 
-### Backend
-- **Framework:** FastAPI (Python 3.11+)
-- **Database:** PostgreSQL
-- **ORM:** SQLModel (Pydantic + SQLAlchemy)
-- **AI/LLM:** Anthropic Claude API
-- **MCP Tools:** Custom task management tools (add, list, update, complete, delete)
-- **Migrations:** Alembic
+### Development Frameworks
+- **Backend:** FastAPI with Dapr integration (Python 3.11+)
+- **MCP Tools:** Enhanced task operations with event publishing
+- **Event Processing:** Kafka consumers with proper error handling
+- **CI/CD:** GitHub Actions for automated deployments
+- **Helm Charts:** Declarative deployment configurations
 
 ## Development Workflow
 
-### Feature Development Process
-1. **Specification:** Create `specs/<feature>/spec.md`
-2. **Planning:** Generate `specs/<feature>/plan.md` with architecture decisions
-3. **Task Breakdown:** Generate `specs/<feature>/tasks.md` with acceptance criteria
-4. **Implementation:** Execute tasks incrementally
-5. **Testing:** Write and run tests for each task
-6. **Review:** Code review and approval
-7. **Documentation:** Update relevant documentation
-8. **PHR Creation:** Create Prompt History Record in appropriate directory
+### Cloud Deployment Process
+1. **Specification:** Create `specs/cloud-deployment/spec.md` with cloud requirements
+2. **Planning:** Generate `specs/cloud-deployment/plan.md` with K8s/Dapr/Kafka architecture
+3. **Task Breakdown:** Generate `specs/cloud-deployment/tasks.md` with deployment tasks
+4. **Local Testing:** Deploy and test on Minikube with full Dapr features
+5. **Integration:** Verify Kafka pub/sub, state management, service invocation
+6. **Cloud Deployment:** Deploy to AKS/GKE with production configurations
+7. **Monitoring:** Set up observability and alerting systems
 
-### Architectural Decision Records (ADR)
-**Three-Part Test for ADR Significance:**
-1. **Impact:** Long-term consequences? (framework, data model, API, security, platform)
-2. **Alternatives:** Multiple viable options considered?
-3. **Scope:** Cross-cutting and influences system design?
+### Event Schema Definition Process
+**Required Event Standards:**
+- Task Event Schema: event_type, task_id, task_data, user_id, timestamp
+- Reminder Event Schema: task_id, title, due_at, remind_at, user_id
+- All events must be versioned and backward compatible
+- Schema registry for validation (Confluent Schema Registry if using Confluent Cloud)
 
-**If ALL true:** Suggest to user with format:
-```
-📋 Architectural decision detected: [brief-description]
-   Document reasoning and tradeoffs? Run `/sp.adr [decision-title]`
-```
-**User Consent Required:** Never auto-create ADRs; wait for approval.
+### Dapr Component Development Process
+**Component Configuration Standards:**
+1. **Pub/Sub Component:** kafka-pubsub for event streaming
+2. **State Component:** postgresql-state for conversation persistence
+3. **Secret Store:** kubernetes-secrets for credential management
+4. **Service Discovery:** Dapr sidecars for automatic service invocation
+5. **Configuration:** Component files stored in `deploy/dapr-components/`
 
-### Prompt History Records (PHR)
-**Mandatory Creation After:**
-- Implementation work (code changes, new features)
-- Planning/architecture discussions
-- Debugging sessions
-- Spec/task/plan creation
-- Multi-step workflows
+## Advanced Features Implementation
 
-**Routing (all under `history/prompts/`):**
-- Constitution → `history/prompts/constitution/`
-- Feature stages → `history/prompts/<feature-name>/`
-- General → `history/prompts/general/`
+### Recurring Tasks & Reminders
+- **Event-Driven:** Task completion triggers recurring task engine via Kafka
+- **Dapr Jobs API:** Scheduled reminders using Dapr's job scheduling
+- **Decoupled Services:** Notification and recurring task services as separate deployments
+- **Audit Trail:** All recurring task operations logged in Kafka for compliance
 
-**Validation Requirements:**
-- No unresolved placeholders
-- Complete PROMPT_TEXT (not truncated)
-- File exists at expected path
-- All metadata fields filled
-
-## Agent Model
-
-The project uses a multi-agent architecture. Claude Code acts as the Orchestrator and delegates work to specialized agents with explicit skills.
-
-### AGENT 1: UI/UX Agent
-
-**Role:**
-- Dashboard layout
-- Component composition
-- Visual hierarchy
-- Accessibility
-
-**Skills:**
-- Next.js App Router
-- Tailwind CSS
-- Recharts
-- Responsive Design
-- UX patterns for SaaS dashboards
-
-**Allowed Scope:**
-- `frontend/app/dashboard/*`
-- `frontend/components/dashboard/*`
-- `frontend/components/ui/*`
-
-### AGENT 2: Frontend Integration Agent
-
-**Role:**
-- Wire UI components to existing APIs
-- Manage state updates
-- Ensure chat → dashboard sync
-
-**Skills:**
-- REST API integration
-- React hooks
-- State synchronization
-- Error handling
-
-**Allowed Scope:**
-- `frontend/lib/api.js`
-- `frontend/hooks/*`
-- `frontend/components/chat/*`
-
-### AGENT 3: Chat Experience Agent
-
-**Role:**
-- Chat widget behavior
-- Voice input
-- Language handling (Urdu/English)
-
-**Skills:**
-- Conversational UI
-- Web Speech API
-- UX for chat systems
-- Graceful degradation
-
-**Allowed Scope:**
-- `frontend/components/chat/*`
-- `frontend/hooks/useVoiceInput.js`
-
-### AGENT 4: QA & Validation Agent
-
-**Role:**
-- Use skills and agents from .claude\agents  .claude\skills
-- Validate task outcomes
-- Run acceptance checks
-- Identify regressions
-
-**Skills:**
-- Manual QA
-- Integration testing
-- Lighthouse audits
-- Accessibility validation
-
-**Allowed Scope:**
-- `specs/dashboard-enhancement/tasks.md` (validation only)
-- Testing artifacts
-
-### ORCHESTRATOR: Claude Code
-
-**Responsibilities:**
-- Enforce constitution
-- Assign tasks to agents
-- Merge outputs
-- Maintain task order
-- Stop after each task
+### Priority, Tags, Search & Filtering
+- **Event Sourcing:** All attribute changes captured as events in Kafka
+- **Indexing Strategy:** External services can consume events to build search indexes
+- **Real-time Sync:** Kafka streams enable real-time updates across clients
+- **Scalable Architecture:** Attribute-based queries handled by dedicated services
 
 ## Non-Goals & Constraints
 
 ### Non-Goals
-- No Real-Time Collaboration (single-user application)
-- No Native Mobile App (web-first only)
-- No Complex Workflows (simple task management focus)
-- No Third-Party Integrations in Phase 1
+- **No Monolithic Deployment:** Services must remain independent and scalable
+- **No Direct Database Access:** All state interactions through Dapr building blocks
+- **No Hardcoded Infrastructure:** All connections via Dapr components or environment variables
+- **No Synchronous Service Calls:** All inter-service communication via pub/sub
 
 ### Constraints
-- **Manual Coding Forbidden:** Human must not write code beyond repository assembly
-- **No Business Logic Changes:** Existing functionality must remain intact
-- **Budget Conscious:** Optimize API calls to minimize LLM costs
-- **Browser Support:** Modern browsers only (last 2 versions)
+- **Dapr Dependency:** All infrastructure access must use Dapr building blocks
+- **Event Persistence:** All business operations must be captured as Kafka events
+- **Cloud Portability:** Solutions must work across Minikube, AKS, and GKE
+- **Security First:** All services must implement proper authentication and authorization
 
 ## Governance
 
-This constitution supersedes all other development practices. All changes must:
-- Follow Spec-Driven Development workflow
-- Create PHRs for significant interactions
-- Suggest ADRs for architectural decisions (with user consent)
-- Maintain type safety and code quality standards
-- Preserve existing business logic
-- Be testable and traceable to specs
+This constitution governs Phase V Advanced Cloud Deployment development. All changes must:
+- Follow cloud-native principles and Kubernetes best practices
+- Integrate with Dapr for infrastructure abstraction
+- Use Kafka for all inter-service communication
+- Maintain event sourcing architecture
+- Support deployment on Minikube and cloud K8s platforms
+- Include comprehensive monitoring and observability
 
 **Amendments require:**
-1. Clear rationale and documentation
-2. Review by project stakeholders
-3. Communication to all team members
-4. Version history update
+1. Architecture Review Board approval for infrastructure changes
+2. Cloud platform compatibility verification
+3. Event schema backward compatibility assessment
+4. Dapr component configuration validation
 
-**Version**: 1.1.0 | **Ratified**: 2025-12-24 | **Last Amended**: 2025-12-25
+**Version**: 2.0.0 | **Ratified**: 2026-01-13 | **Last Amended**: 2026-01-13
